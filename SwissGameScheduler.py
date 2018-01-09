@@ -43,61 +43,54 @@ def getTimeDelta(previousMatches, teamName, futureSlot):
     return delta
 
 
-def getMaxDistance(previousMatches, futureSlots):
-    assert len(previousMatches) > 0 and len(futureSlots) > 0
-    delta = 0
-    mostFutureSlot = futureSlots[0]
-    for slot in futureSlots:
-        if slot.start > mostFutureSlot.start:
-            mostFutureSlot = slot
-    for match in previousMatches:
-        delta = max(delta, match.timeRange.distance(mostFutureSlot))
-    return delta
+def calculateGain(previousMatches, futureMatchUp, futureSlot):
+    targetDelta = 60 # how much time optimally should be between games
+    firstDelta = getTimeDelta(previousMatches, futureMatchUp.first, futureSlot)
+    secondDelta = getTimeDelta(previousMatches, futureMatchUp.second, futureSlot)
+    firstCorrectedDelta = firstDelta - targetDelta
+    secondCorrectedDelta = secondDelta- targetDelta
+    gainSource = min(firstCorrectedDelta, secondCorrectedDelta)
+    if gainSource >= 0:
+        return 20
+    else:
+        return -(gainSource**2) # heavily penalize for being above targetDelta threshold
 
-
-def calculateLoss(previousMatches, maxDistance, futureMatchUp, futureSlot):
-    return (maxDistance - max(getTimeDelta(previousMatches, futureMatchUp.first, futureSlot), 0))**2 + \
-           (maxDistance - max(getTimeDelta(previousMatches, futureMatchUp.second, futureSlot), 0))**2
-
-
-def genLossMatrix(previousMatches, futureSlots, futureMatchUps):
+def genGainMatrix(previousMatches, futureSlots, futureMatchUps):
     assert len(previousMatches) > 0 and len(futureSlots) > 0 and len(futureMatchUps) > 0
 
-    maxDistance = getMaxDistance(previousMatches, futureSlots)
-    assert maxDistance > 0
-    lossMatrix = []
+    gainMatrix = []
     for slot in futureSlots:
-        lossRow = []
+        gainRow = []
         for matchUp in futureMatchUps:
-            lossRow.append(calculateLoss(previousMatches, maxDistance, matchUp, slot))
-        lossMatrix.append(lossRow)
-    return lossMatrix
+            gainRow.append(calculateGain(previousMatches, matchUp, slot))
+        gainMatrix.append(gainRow)
+    return gainMatrix
 
 
-def getLossSum(lossMatrix, matchUpIndexList):
-    lossSum = 0
+def getGainSum(gainMatrix, matchUpIndexList):
+    gainSum = 0
     for slotIndex in range(0, len(matchUpIndexList)):
-        lossSum += lossMatrix[slotIndex][matchUpIndexList[slotIndex]]
-    return lossSum
+        gainSum += gainMatrix[slotIndex][matchUpIndexList[slotIndex]]
+    return gainSum
 
 
-def minimizeLoss(lossMatrix, futureSlots, futureMatchUps):
+def maximizeGain(gainMatrix, futureSlots, futureMatchUps):
     #TODO assert correct size
     swapped = True
-    matchupIndexList = list(range(0, len(lossMatrix)))
+    matchupIndexList = list(range(0, len(gainMatrix)))
     while swapped:
         swapped = False
         for offset in range(0, len(matchupIndexList) - 1):
             for i in range(offset + 1, len(matchupIndexList)):
-                currentLossSum = getLossSum(lossMatrix, matchupIndexList)
+                currentGainSum = getGainSum(gainMatrix, matchupIndexList)
                 newMatchUpIndexList = matchupIndexList[:]
                 newMatchUpIndexList[i] = matchupIndexList[offset]
                 newMatchUpIndexList[offset] = matchupIndexList[i]
-                newLossSum = getLossSum(lossMatrix, newMatchUpIndexList)
-                if(newLossSum < currentLossSum):
+                newGainSum = getGainSum(gainMatrix, newMatchUpIndexList)
+                if(newGainSum > currentGainSum):
                     swapped = True
                     matchupIndexList = newMatchUpIndexList[:]
-                    print(currentLossSum)
+                    print(currentGainSum)
     for i in range(0, len(matchupIndexList)):
         print("start {} end {}   {} : {}".format(printTime(futureSlots[i].start),
                                                  printTime(futureSlots[i].end),
@@ -147,5 +140,5 @@ for rowIndex, row in enumerate(csvReader):
 csvFile.close()
 
 
-lossMatrix = genLossMatrix(previousMatches, futureSlots, futureMatchUps)
-minimizeLoss(lossMatrix, futureSlots, futureMatchUps)
+gainMatrix = genGainMatrix(previousMatches, futureSlots, futureMatchUps)
+maximizeGain(gainMatrix, futureSlots, futureMatchUps)
