@@ -136,7 +136,7 @@ for rowIndex, row in enumerate(csvReader):
     # extract data for future slots
     if rowIndex >= 42-1 and rowIndex <= 50-1:
         sensibleLength = 24
-        futureSlots.append(Slot(hhmmTom(row[4]), hhmmTom(row[4])+sensibleLength))
+        futureSlots.append(Slot(int(row[4]), int(row[4])+sensibleLength))
 csvFile.close()
 
 
