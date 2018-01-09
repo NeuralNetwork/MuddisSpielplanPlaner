@@ -56,8 +56,8 @@ def getMaxDistance(previousMatches, futureSlots):
 
 
 def calculateLoss(previousMatches, maxDistance, futureMatchUp, futureSlot):
-    return (maxDistance - getTimeDelta(previousMatches, futureMatchUp.first, futureSlot))**2 + \
-           (maxDistance - getTimeDelta(previousMatches, futureMatchUp.second, futureSlot))**2
+    return (maxDistance - max(getTimeDelta(previousMatches, futureMatchUp.first, futureSlot), 0))**2 + \
+           (maxDistance - max(getTimeDelta(previousMatches, futureMatchUp.second, futureSlot), 0))**2
 
 
 def genLossMatrix(previousMatches, futureSlots, futureMatchUps):
@@ -99,12 +99,14 @@ def minimizeLoss(lossMatrix, futureSlots, futureMatchUps):
                     matchupIndexList = newMatchUpIndexList[:]
                     print(currentLossSum)
     for i in range(0, len(matchupIndexList)):
-        print("start {:02d}:{:02d} end {:02d}:{:02d}   {} : {}".format(futureSlots[i].start // 60,
-                                                                       futureSlots[i].start % 60,
-                                                                       futureSlots[i].end // 60,
-                                                                       futureSlots[i].end % 60,
-                                                                       futureMatchUps[matchupIndexList[i]].first,
-                                                                       futureMatchUps[matchupIndexList[i]].second))
+        print("start {} end {}   {} : {}".format(printTime(futureSlots[i].start),
+                                                 printTime(futureSlots[i].end),
+                                                 futureMatchUps[matchupIndexList[i]].first,
+                                                 futureMatchUps[matchupIndexList[i]].second))
+        firstDelta = getTimeDelta(previousMatches, futureMatchUps[matchupIndexList[i]].first, futureSlots[i])
+        secondDelta = getTimeDelta(previousMatches, futureMatchUps[matchupIndexList[i]].second, futureSlots[i])
+        print(firstDelta, futureMatchUps[matchupIndexList[i]].first)
+        print(secondDelta, futureMatchUps[matchupIndexList[i]].second)
 
 
 def hhmmTom(timeString):
@@ -115,6 +117,10 @@ def hhmmTom(timeString):
     assert hh >= 0 and hh <= 23
     assert mm >= 0 and mm <= 59
     return hh * 60 + mm
+
+
+def printTime(minutes):
+    return "{:02d}:{:02d}".format(minutes // 60, minutes % 60)
 
 
 # read data from csv into lists
