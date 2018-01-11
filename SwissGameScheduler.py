@@ -11,6 +11,8 @@ def getTimeDelta(previousMatches, teamName, futureSlot):
     return delta
 
 
+#TODO penalize for multiple games in hall 3
+#TODO consider hall change when calculating gain
 def calculateGain(previousMatches, futureMatchUp, futureSlot):
     targetDelta = 60 # how much time optimally should be between games
     firstDelta = getTimeDelta(previousMatches, futureMatchUp.first, futureSlot)
