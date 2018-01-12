@@ -56,14 +56,13 @@ def calculateTotalError(currentRanking, results):
         rankA = currentRanking.index(result.matchUp.first)
         rankB = currentRanking.index(result.matchUp.second)
         rankDelta = rankA - rankB
-        resultDelta = 0
-        if rankDelta >= 0:
-            resultDelta = result.first - result.second
-        else:
-            resultDelta = result.second - result.first
-        predictedResultDelta = rankDeltaToResultDelta[rankDelta]
+        resultDelta = result.first - result.second
+        predictedResultDelta = rankDeltaToResultDelta[abs(rankDelta)]
+        if rankDelta > 0:
+            predictedResultDelta *= -1
         lossSum += (resultDelta - predictedResultDelta)**2
     return lossSum
+
 
 #TODO retain minimal loss solution
 def generateNewRanking(currentRanking, results):
