@@ -1,10 +1,12 @@
 class Slot:
     start = 0
     end = 0
+    locationId = -1
 
-    def __init__(self, start, end):
+    def __init__(self, start, end, locationId):
         self.start = start
         self.end = end
+        self.locationId = locationId
 
     def distance(self, other):
         if self.start <= other.start:
@@ -24,11 +26,11 @@ class MatchUp:
 
 class Match:
     matchUp = MatchUp("", "")
-    timeRange = Slot(0, 0)
+    timeRange = Slot(0, 0, -1)
 
-    def __init__(self, teamA, teamB, start, end):
+    def __init__(self, teamA, teamB, start, end, locationId):
         self.matchUp = MatchUp(teamA, teamB)
-        self.timeRange = Slot(start, end)
+        self.timeRange = Slot(start, end, locationId)
 
 
 class Result:

@@ -87,6 +87,7 @@ def printTime(minutes):
 
 
 # read data from csv into lists
+#TODO fetch start and end times without penalties
 previousMatches = []
 futureMatchUps = []
 futureSlots = []
@@ -97,7 +98,7 @@ csvReader = csv.reader(csvFile)
 for rowIndex, row in enumerate(csvReader):
     # extract data for previous matches
     if rowIndex >= 5-1 and rowIndex <= 13-1:
-        previousMatches.append(Match(row[4], "", hhmmTom(row[5]), hhmmTom(row[8])))
+        previousMatches.append(Match(row[4], "", hhmmTom(row[5]), hhmmTom(row[8]), row[7]))
     if rowIndex >= 14-1 and rowIndex <= 22-1:
         previousMatches[rowIndex - (14-1)].matchUp.second = row[4]
     # extract data for future match ups
@@ -106,7 +107,7 @@ for rowIndex, row in enumerate(csvReader):
     # extract data for future slots
     if rowIndex >= 42-1 and rowIndex <= 50-1:
         sensibleLength = 24
-        futureSlots.append(Slot(int(row[4]), int(row[4])+sensibleLength))
+        futureSlots.append(Slot(int(row[4]), int(row[4])+sensibleLength, row[3]))
 csvFile.close()
 
 
