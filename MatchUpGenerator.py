@@ -2,26 +2,7 @@ from TournamentDescriptionClasses import MatchUp
 import sys
 
 class MatchUpGenerator:
-    teams = [
-    "Häßliche Erdferkel",
-    "Hucks",
-    "Goldfingers",
-    "Wild Things",
-    "Drehst'n Deckel",
-    "Cakes",
-    "Frühsport",
-    "Alsterkutter",
-    "Paradisco",
-    "UMS",
-    "Funatoren",
-    "Uproar Ultimate",
-    "Saxy Divers",
-    "Endzonis",
-    "Caracals",
-    "Göttinger 7",
-    "RotPot",
-    "Airpussies",
-    ]
+    teams = []
 
     ranking = []
     pastMatchUps = [] # list of teams that already played against each other
@@ -31,6 +12,7 @@ class MatchUpGenerator:
 
     def __init__(self, ranking, results):
         self.ranking = ranking
+        self.teams = ranking
         for result in results:
             self.pastMatchUps.append(result.matchUp)
 
