@@ -11,17 +11,74 @@ def getTimeDelta(previousMatches, teamName, futureSlot):
     return delta
 
 
-#TODO penalize for multiple games in hall 3
-#TODO consider hall change when calculating gain
+def getTimesPlayedInHall3(previousMatches, futureMatchUp):
+    numHall3GamesA = 0
+    numHall3GamesB = 0
+    for match in previousMatches:
+        if match.timeRange.locationId == 3:
+            teamA = futureMatchUp.first
+            teamB = futureMatchUp.second
+            if match.matchUp.first == teamA or match.matchUp.second == teamA:
+                numHall3GamesA += 1
+            if match.matchUp.first == teamB or match.matchUp.second == teamB:
+                numHall3GamesB += 1
+    return max(numHall3GamesA, numHall3GamesB)
+
+#TODO this only if all games happen on the same day! #FIXME
+def getHallChangeNeeded(previousMatches, futureMatchUp, futureSlot):
+    # case 1: hall 1 or hall 2
+    # case 3: hall 3
+    mostRecentHallA = 0
+    mostRecentMatchUpTimeA = 0
+    mostRecentHallB = 0
+    mostRecentMatchUpTimeB = 0
+    for match in previousMatches:
+        teamA = futureMatchUp.first
+        teamB = futureMatchUp.second
+        if match.matchUp.first == teamA or match.matchUp.second == teamA:
+            if match.timeRange.end > mostRecentMatchUpTimeA:
+                mostRecentHallA = match.timeRange.locationId
+                if mostRecentHallA == 1 or mostRecentHallA == 2:
+                    mostRecentHallA = 1
+        if match.matchUp.first == teamB or match.matchUp.second == teamB:
+            if match.timeRange.end > mostRecentMatchUpTimeB:
+                mostRecentHallB = match.timeRange.locationId
+                if mostRecentHallB == 1 or mostRecentHallB == 2:
+                    mostRecentHallB = 1
+    hallChangeNeededA = False
+    hallChangeNeededB = False
+    futureHall = futureSlot.locationId
+    if futureHall == 1 or futureHall == 2:
+        futureHall = 1
+    if mostRecentMatchUpTimeA != 0:
+        hallChangeNeededA = futureHall != mostRecentHallA
+    if mostRecentMatchUpTimeB != 0:
+        hallChangeNeededB = futureHall != mostRecentHallB
+    if hallChangeNeededA or hallChangeNeededB:
+        return True
+    return False
+
+
 def calculateGain(previousMatches, futureMatchUp, futureSlot):
+    hall3TransferPenalty = 30 # minutes
     targetDelta = 60 # how much time optimally should be between games
+
+    timesPlayedInHall3 = getTimesPlayedInHall3(previousMatches, futureMatchUp)
+    hallChangeNeeded = getHallChangeNeeded(previousMatches, futureMatchUp, futureSlot)
+
     firstDelta = getTimeDelta(previousMatches, futureMatchUp.first, futureSlot)
     secondDelta = getTimeDelta(previousMatches, futureMatchUp.second, futureSlot)
     firstCorrectedDelta = firstDelta - targetDelta
     secondCorrectedDelta = secondDelta- targetDelta
     gainSource = min(firstCorrectedDelta, secondCorrectedDelta)
+    if hallChangeNeeded:
+        gainSource -= hall3TransferPenalty
+
     if gainSource >= 0:
-        return 20
+        if timesPlayedInHall3 > 1 and futureSlot.locationId == 3:
+            return 20 / timesPlayedInHall3
+        else:
+            return 20
     else:
         return -(gainSource**2) # heavily penalize for being above targetDelta threshold
 
