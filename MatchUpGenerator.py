@@ -37,7 +37,10 @@ class MatchUpGenerator:
 
     def _genMatchUpRecursive(self, indizes, matchUps):
         if len(indizes) == 0:
-            #TODO check if any matchup already occured
+            #check if any matchup already occured
+            if (self._isMatchupAlreadyOccured(matchUps)):
+                return
+
             loss = self._calculateMatchUpLoss(matchUps)
             if loss < self.bestLoss:
                 self.bestLoss = loss
@@ -54,6 +57,15 @@ class MatchUpGenerator:
                     self._genMatchUpRecursive(indizesBCopy, matchUps)
                     matchUps.pop()
 
+    #TODO check if this code works
+    def _isMatchupAlreadyOccured(self, matchUps):
+        for matchup in matchUps:
+            for pastMatchup in self.pastMatchUps:
+                if pastMatchup.first == matchup.first and pastMatchup.second == matchup.second:
+                    return True
+                elif pastMatchup.first == matchup.second and pastMatchup.second == matchup.first:
+                    return True
+        return False
 
     def _calculateMatchUpLoss(self, matchUps):
         loss = 0
