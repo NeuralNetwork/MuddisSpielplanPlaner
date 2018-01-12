@@ -52,6 +52,7 @@ class MatchUpGenerator:
                     indizesBCopy.remove(indexB)
                     matchUps.append(MatchUp(self.teams[indexA], self.teams[indexB]))
                     self._genMatchUpRecursive(indizesBCopy, matchUps)
+                    matchUps.pop()
 
 
     def _calculateMatchUpLoss(self, matchUps):
@@ -61,9 +62,10 @@ class MatchUpGenerator:
         return loss
 
 
-    def matchUpGenerator(self, ranking, results, debug=False):
+    def generateMatchUps(self, debug=False):
         self._genMatchUpRecursive(list(range(0, len(self.teams))), [])
         if debug:
-            print(self.bestMatchUp)
+            for matchUp in self.bestMatchUp:
+                print(matchUp.first, ":", matchUp.second)
             print("loss", self.bestLoss)
         return self.bestMatchUp
