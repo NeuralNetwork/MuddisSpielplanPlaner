@@ -49,7 +49,6 @@ def swap(list, indexA, indexB):
     list[indexB] = temp
 
 
-#TODO test if inverted ranking quadruples the squared error
 def calculateTotalError(currentRanking, results):
     lossSum = 0
     for result in results:
@@ -64,14 +63,13 @@ def calculateTotalError(currentRanking, results):
     return lossSum
 
 
-#TODO retain minimal loss solution
-def generateNewRanking(currentRanking, results):
+def generateNewRanking(currentRanking, results, debug=False):
     losses = []
     minimalLoss = sys.maxsize
     minimalLossRanking = currentRanking[:]
     newRanking = currentRanking[:]
     decay = 0.9999
-    pAcceptWorse = 0.5
+    pAcceptWorse = 0.5 # probability to accept a worse result
     for i in range(0,1000000):
         currentLoss = calculateTotalError(newRanking, results)
         losses.append(currentLoss)
@@ -87,12 +85,11 @@ def generateNewRanking(currentRanking, results):
         if newLoss > currentLoss and random.uniform(0.0, 1.0) > pAcceptWorse: # do not accept worse value
             swap(newRanking, indexA, indexB)
         pAcceptWorse *= decay
-
-    for item in minimalLossRanking:
-        print(item)
-    print("loss", minimalLoss)
-    print("pAcceptWorse", pAcceptWorse)
-    plt.plot(losses)
-    plt.show()
-
-generateNewRanking(currentRanking, results)
+    if debug:
+        for item in minimalLossRanking:
+            print(item)
+        print("loss", minimalLoss)
+        print("pAcceptWorse", pAcceptWorse)
+        plt.plot(losses)
+        plt.show()
+    return minimalLossRanking
