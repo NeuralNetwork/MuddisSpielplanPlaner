@@ -121,14 +121,15 @@ class SwissGameScheduler:
                         matchupIndexList = newMatchUpIndexList[:]
                         print(currentGainSum)
         for i in range(0, len(matchupIndexList)):
-            print("start {} end {}   {} : {}".format(self.printTime(futureSlots[i].start),
-                                                     self.printTime(futureSlots[i].end),
-                                                     futureMatchUps[matchupIndexList[i]].first,
-                                                     futureMatchUps[matchupIndexList[i]].second))
+            print("start {} end {} (hall {})  {} : {}".format(self.printTime(futureSlots[i].start),
+                                                              self.printTime(futureSlots[i].end),
+                                                              futureSlots[i].locationId,
+                                                              futureMatchUps[matchupIndexList[i]].first,
+                                                              futureMatchUps[matchupIndexList[i]].second))
             firstDelta = self.getTimeDelta(previousMatches, futureMatchUps[matchupIndexList[i]].first, futureSlots[i])
             secondDelta = self.getTimeDelta(previousMatches, futureMatchUps[matchupIndexList[i]].second, futureSlots[i])
-            print(firstDelta, futureMatchUps[matchupIndexList[i]].first)
-            print(secondDelta, futureMatchUps[matchupIndexList[i]].second)
+            print("minutes between games for {}: {}".format(futureMatchUps[matchupIndexList[i]].first), firstDelta)
+            print("minutes between games for {}: {}".format(futureMatchUps[matchupIndexList[i]].second), secondDelta)
 
 
     def printTime(self, minutes):
