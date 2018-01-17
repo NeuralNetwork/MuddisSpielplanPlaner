@@ -19,38 +19,56 @@ def hhmmTom(timeString):
 # read data from csv into lists
 #TODO fetch start and end times without penalties
 currentRanking = [
-    "Häßliche Erdferkel",
-    "Hucks",
-    "Goldfingers",
     "Wild Things",
-    "Drehst'n Deckel",
-    "Cakes",
-    "Frühsport",
-    "Alsterkutter",
-    "Paradisco",
-    "UMS",
+    "Göttinger 7",
+    "Häßliche Erdferkel",
+    "Saxy Divers",
+    "Goldfingers",
     "Funatoren",
     "Uproar Ultimate",
-    "Saxy Divers",
+    "UMS",
+    "Hucks",
+    "Frühsport",
     "Endzonis",
+    "Alsterkutter",
     "Caracals",
-    "Göttinger 7",
-    "RotPot",
+    "Drehst'n Deckel",
     "Airpussies",
+    "Cakes",
+    "RotPot",
+    "Paradisco",
 ]
 
-results = [
-    Result("Häßliche Erdferkel", "Hucks", 2, 3)
-]
-ranking = generateNewRanking(currentRanking, results)
-matchUpGenerator = MatchUpGenerator(ranking, results)
-futureMatchUps = matchUpGenerator.generateMatchUps()
-previousMatches = [
-    Match("Häßliche Erdferkel", "Hucks", hhmmTom("09:10"), hhmmTom("09:40"), 1)
-]
-futureSlots = [
-    Slot(hhmmTom("09:40"), hhmmTom("10:10"), 1)
-]
+results = []
+resultsFile = open("./results.csv")
+resultsCsv = csv.reader(resultsFile, delimiter=';')
+for row in resultsCsv:
+    results.append(Result(row[0], row[1], int(row[2]), int(row[3])))
+resultsFile.close()
 
-scheduler = SwissGameScheduler()
-scheduler.maximizeGain(previousMatches, futureSlots, futureMatchUps)
+# previousMatches = []
+# previousMatchesFile = open("./previousMatches.csv")
+# previousMatchesCsv = csv.reader(previousMatchesFile, delimiter=';')
+# for row in previousMatchesCsv:
+#     previousMatches.append(Match(row[0], row[1], hhmmTom(row[2]), hhmmTom(row[3]), int(row[4])))
+# previousMatchesFile.close()
+
+ranking = generateNewRanking(currentRanking, results, True)
+
+# some games do not have a result yet, but are still needed for further optimizations
+# resultsWithoutResultsFile = open("./resultswithoutresults.csv")
+# resultsWithoutResultsCsv = csv.reader(resultsWithoutResultsFile, delimiter=';')
+# for row in resultsWithoutResultsCsv:
+#     results.append(Result(row[0], row[1], int(row[2]), int(row[3])))
+# matchUpGenerator = MatchUpGenerator(ranking, results)
+# futureMatchUps = matchUpGenerator.generateMatchUps(True)
+#
+# futureSlots = []
+# futureSlotsFile = open("./futureSlots.csv")
+# futureSlotsCsv = csv.reader(futureSlotsFile, delimiter=';')
+# for row in futureSlotsCsv:
+#     futureSlots.append(Slot(hhmmTom(row[0]), hhmmTom(row[1]), int(row[2])))
+# futureSlotsFile.close()
+#
+# scheduler = SwissGameScheduler()
+# scheduler.maximizeGain(previousMatches, futureSlots, futureMatchUps)
