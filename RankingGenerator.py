@@ -2,6 +2,7 @@ from TournamentDescriptionClasses import Result
 import random
 import sys
 import matplotlib.pyplot as plt
+from typing import List
 
 rankDeltaToResultDelta = [
     0,
@@ -25,31 +26,14 @@ rankDeltaToResultDelta = [
     13,
 ]
 
-currentRanking = [
-    "a",
-    "b",
-    "c",
-    "d",
-    "e",
-    "f",
 
-]
-
-results = [
-    Result("a", "b", 5, 7),
-    Result("c", "d", 7, 11),
-    Result("e", "f", 9, 10),
-    Result("b", "c", 9, 3),
-]
-
-
-def swap(list, indexA, indexB):
+def swap(list: List[str], indexA: int, indexB: int):
     temp = list[indexA]
     list[indexA] = list[indexB]
     list[indexB] = temp
 
 
-def calculateTotalError(currentRanking, results):
+def calculateTotalError(currentRanking: List[str], results: List[Result]) -> float:
     lossSum = 0
     for result in results:
         rankA = currentRanking.index(result.matchUp.first)
@@ -63,7 +47,7 @@ def calculateTotalError(currentRanking, results):
     return lossSum
 
 
-def generateNewRanking(currentRanking, results, debug=False):
+def generateNewRanking(currentRanking: List[str], results: List[Result], debug=False) -> List[str]:
     losses = []
     minimalLoss = sys.maxsize
     minimalLossRanking = currentRanking[:]

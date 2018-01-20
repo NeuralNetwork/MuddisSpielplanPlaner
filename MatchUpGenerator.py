@@ -1,10 +1,11 @@
-from TournamentDescriptionClasses import MatchUp
+from TournamentDescriptionClasses import MatchUp, Result
 import sys
+from typing import List
 
 class MatchUpInt:
     first = 0
     second = 0
-    def __init__(self, first, second):
+    def __init__(self, first: int, second: int):
         self.first = first
         self.second = second
 
@@ -18,7 +19,7 @@ class MatchUpGenerator:
     bestLoss = sys.maxsize
     bestMatchUp = []
 
-    def __init__(self, ranking, results):
+    def __init__(self, ranking: List[str], results: List[Result]):
         self.ranking = ranking
         self.teams = ranking
         for result in results:
@@ -36,7 +37,7 @@ class MatchUpGenerator:
             self.alreadyPlayedLuT[matchUp.first][matchUp.second] = True
             self.alreadyPlayedLuT[matchUp.second][matchUp.first] = True
 
-    def _genMatchUpRecursive(self, indizes, matchUps):
+    def _genMatchUpRecursive(self, indizes: List[int], matchUps: List[MatchUpInt]) -> None:
         if len(indizes) == 0:
             #check if any matchup already occured
             if (self._hasMatchupAlreadyOccured(matchUps)):
@@ -48,32 +49,32 @@ class MatchUpGenerator:
                 self.bestMatchUp = matchUps[:]
                 return
         else:
-                indexA = indizes[0]
-                indizesACopy = indizes[:]
-                indizesACopy.remove(indexA)
-                for indexB in indizesACopy:
-                    indizesBCopy = indizesACopy[:]
-                    indizesBCopy.remove(indexB)
-                    matchUps.append(MatchUpInt(indexA, indexB))
-                    if not self._hasMatchupAlreadyOccured(matchUps):
-                        self._genMatchUpRecursive(indizesBCopy, matchUps)
-                    matchUps.pop()
+            indexA = indizes[0]
+            indizesACopy = indizes[:]
+            indizesACopy.remove(indexA)
+            for indexB in indizesACopy:
+                indizesBCopy = indizesACopy[:]
+                indizesBCopy.remove(indexB)
+                matchUps.append(MatchUpInt(indexA, indexB))
+                if not self._hasMatchupAlreadyOccured(matchUps):
+                    self._genMatchUpRecursive(indizesBCopy, matchUps)
+                matchUps.pop()
 
     #TODO check if this code works
-    def _hasMatchupAlreadyOccured(self, matchUps):
+    def _hasMatchupAlreadyOccured(self, matchUps: List[MatchUpInt]) -> bool:
         for matchUp in matchUps:
             if self.alreadyPlayedLuT[matchUp.first][matchUp.second]:
                 return True
         return False
 
-    def _calculateMatchUpLoss(self, matchUps):
+    def _calculateMatchUpLoss(self, matchUps: List[MatchUpInt]) -> float:
         loss = 0
         for matchUp in matchUps:
             loss += abs(matchUp.first - matchUp.second)
         return loss
 
 
-    def generateMatchUps(self, debug=False):
+    def generateMatchUps(self, debug=False) -> List[MatchUp]:
         self._genMatchUpRecursive(list(range(0, len(self.teams))), [])
         convertedMatchUp = []
         for matchUpInt in self.bestMatchUp:

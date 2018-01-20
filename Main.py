@@ -5,7 +5,7 @@ from SwissGameScheduler import SwissGameScheduler
 from TournamentDescriptionClasses import Match, MatchUp, Slot, Result
 
 
-def hhmmTom(timeString):
+def hhmmTom(timeString: str):
     assert len(timeString) == 5
     assert timeString[2] == ":"
     hh = int(timeString[0:2])
