@@ -2,7 +2,7 @@ import csv
 from RankingGenerator import generateNewRanking
 from MatchUpGenerator import MatchUpGenerator
 from SwissGameScheduler import SwissGameScheduler
-from TournamentDescriptionClasses import Match, MatchUp, Slot, Result
+from TournamentDescriptionClasses import Match, Slot, Result
 from os.path import join
 
 
