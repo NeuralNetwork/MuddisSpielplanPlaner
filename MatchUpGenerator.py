@@ -50,19 +50,18 @@ class MatchUpGenerator:
             self.alreadyPlayedLuT[matchUp.first][matchUp.second] = True
             self.alreadyPlayedLuT[matchUp.second][matchUp.first] = True
 
-    def _genMatchUpRecursive(self, indizes: List[int], matchUps: List[MatchUpInt]) -> None:
+    def _genMatchUpRecursive(self, indizes: List[int], matchUps: List[MatchUpInt], loss: float) -> None:
         """ 
         indizes: [int] of available teams for new matchups
-        matchUps: [MatchUpInt] of 
+        matchUps: [MatchUpInt] of
+        loss: [float] accumulated loss for all matchups in matchUps
         """
         # if no teams are anymore to distribute:
         if len(indizes) == 0:
             #assert that no matchup has already occured
             if (self._hasMatchupAlreadyOccured(matchUps)):
                 return
-
             # if distance in ranking table is minimal, take as optimal MatchUps
-            loss = self._calculateMatchUpLoss(matchUps)
             if loss < self.bestLoss:
                 self.bestLoss = loss
                 self.bestMatchUp = matchUps[:]
@@ -78,9 +77,10 @@ class MatchUpGenerator:
                 indizesBCopy.remove(indexB)
                 # test matchup indexA-indexB
                 matchUps.append(MatchUpInt(indexA, indexB))
-                # ignore if this matchup has already happened
-                if not self._hasMatchupAlreadyOccured(matchUps):
-                    self._genMatchUpRecursive(indizesBCopy, matchUps)
+                addedMatchUpLoss = self._calculateMatchUpLoss(matchUps[-1])
+                # ignore if this matchup has already happened or the accumulated loss is worse than the best yet achieved
+                if not self._hasMatchupAlreadyOccured(matchUps) and loss+addedMatchUpLoss < self.bestLoss:
+                    self._genMatchUpRecursive(indizesBCopy, matchUps, loss+addedMatchUpLoss)
                 matchUps.pop()
 
     #TODO check if this code works
@@ -90,13 +90,10 @@ class MatchUpGenerator:
                 return True
         return False
 
-    def _calculateMatchUpLoss(self, matchUps: List[MatchUpInt]) -> float:
-        """ total distance of matchups in the ranking table
+    def _calculateMatchUpLoss(self, matchUp: MatchUpInt) -> float:
+        """ total distance of matchup in the ranking table
         """
-        loss = 0
-        for matchUp in matchUps:
-            loss += abs(matchUp.first - matchUp.second)
-        return loss
+        return abs(matchUp.first - matchUp.second)
 
 
     def generateMatchUps(self, debug=False) -> List[MatchUp]:
@@ -104,8 +101,8 @@ class MatchUpGenerator:
         There will be no repetition of already played matchups.
         Under this condition, the matchup w/ minimal distance in the ranking table is sought.
         """
-        # start recursive generation of matchups: all teams to distribute, no matchups
-        self._genMatchUpRecursive(list(range(0, len(self.teams))), [])
+        # start recursive generation of matchups: all teams to distribute, no matchups, no loss yet
+        self._genMatchUpRecursive(list(range(0, len(self.teams))), [], 0)
         # convert back to [MatchUp] (w/ str description)
         convertedMatchUp = []
         for matchUpInt in self.bestMatchUp:
