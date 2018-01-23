@@ -81,21 +81,20 @@ for row in futureSlotsCsv:
     futureSlots.append(Slot(hhmmTom(row[0]), hhmmTom(row[1]), int(row[2])))
 futureSlotsFile.close()
 
-if 1:
-    # generate future Matchups, depending on current ranking and previous results
-    print("------------------------------")
-    print("generate future Matchups")
-    print("------------------------------")
-    matchUpGenerator = MatchUpGenerator(ranking, results)
-    futureMatchUps = matchUpGenerator.generateMatchUps(True)
-    t0=time()
-    print("time for matchups: {0}s".format(t0-t1))
+# generate future Matchups, depending on current ranking and previous results
+print("------------------------------")
+print("generate future Matchups")
+print("------------------------------")
+matchUpGenerator = MatchUpGenerator(ranking, results)
+futureMatchUps = matchUpGenerator.generateMatchUps(True)
+t0=time()
+print("time for matchups: {0}s".format(t0-t1))
 
-    # distribute Matchups onto available Slots
-    print("------------------------------")
-    print("schedule future Matchups")
-    print("------------------------------")
-    scheduler = SwissGameScheduler()
-    scheduler.maximizeGain(previousMatches, futureSlots, futureMatchUps)
-    t1=time()
-    print("time for scheduling: {0}s".format(t1-t0))
+# distribute Matchups onto available Slots
+print("------------------------------")
+print("schedule future Matchups")
+print("------------------------------")
+scheduler = SwissGameScheduler()
+scheduler.maximizeGain(previousMatches, futureSlots, futureMatchUps)
+t1=time()
+print("time for scheduling: {0}s".format(t1-t0))
