@@ -3,6 +3,10 @@ import sys
 from typing import List
 
 class MatchUpInt:
+    """ describe Matchup in Indices of ranking table
+    results and matchups are commonly described in teamnames(str)
+    evaluation is done in this file in Integers
+    """
     first = 0
     second = 0
     def __init__(self, first: int, second: int):
@@ -10,16 +14,22 @@ class MatchUpInt:
         self.second = second
 
 class MatchUpGenerator:
+    # list of teams present, following current ranking
     teams = []
 
+    # ranking of teams [str]
     ranking = []
-    pastMatchUps = [] # list of teams that already played against each other
+    # list of teams that already played against each other [Int]
+    pastMatchUps = [] 
+    # LookupTable for previous matchups [[Bool]]
     alreadyPlayedLuT = []
 
     bestLoss = sys.maxsize
     bestMatchUp = []
 
     def __init__(self, ranking: List[str], results: List[Result]):
+        """ initialize ranking, teams, pastMatchUps, AlreadyPlayedLuT
+        """
         self.ranking = ranking
         self.teams = ranking
         for result in results:
@@ -28,6 +38,9 @@ class MatchUpGenerator:
         self._genAlreadyPlayedLookUpTable()
 
     def _genAlreadyPlayedLookUpTable(self):
+        """ create Table [[Bool]], size: #Teams**2
+        Mark past matchups
+        """
         row = []
         for team in self.ranking:
             row.append(False)
@@ -38,24 +51,34 @@ class MatchUpGenerator:
             self.alreadyPlayedLuT[matchUp.second][matchUp.first] = True
 
     def _genMatchUpRecursive(self, indizes: List[int], matchUps: List[MatchUpInt]) -> None:
+        """ 
+        indizes: [int] of available teams for new matchups
+        matchUps: [MatchUpInt] of 
+        """
+        # if no teams are anymore to distribute:
         if len(indizes) == 0:
-            #check if any matchup already occured
+            #assert that no matchup has already occured
             if (self._hasMatchupAlreadyOccured(matchUps)):
                 return
 
+            # if distance in ranking table is minimal, take as optimal MatchUps
             loss = self._calculateMatchUpLoss(matchUps)
             if loss < self.bestLoss:
                 self.bestLoss = loss
                 self.bestMatchUp = matchUps[:]
                 return
         else:
+            # start w/ first index in list indexA
             indexA = indizes[0]
             indizesACopy = indizes[:]
             indizesACopy.remove(indexA)
+            # for all possible indexB
             for indexB in indizesACopy:
                 indizesBCopy = indizesACopy[:]
                 indizesBCopy.remove(indexB)
+                # test matchup indexA-indexB
                 matchUps.append(MatchUpInt(indexA, indexB))
+                # ignore if this matchup has already happened
                 if not self._hasMatchupAlreadyOccured(matchUps):
                     self._genMatchUpRecursive(indizesBCopy, matchUps)
                 matchUps.pop()
@@ -68,6 +91,8 @@ class MatchUpGenerator:
         return False
 
     def _calculateMatchUpLoss(self, matchUps: List[MatchUpInt]) -> float:
+        """ total distance of matchups in the ranking table
+        """
         loss = 0
         for matchUp in matchUps:
             loss += abs(matchUp.first - matchUp.second)
@@ -75,13 +100,20 @@ class MatchUpGenerator:
 
 
     def generateMatchUps(self, debug=False) -> List[MatchUp]:
+        """ Generate new matchups for given ranking and played games
+        There will be no repetition of already played matchups.
+        Under this condition, the matchup w/ minimal distance in the ranking table is sought.
+        """
+        # start recursive generation of matchups: all teams to distribute, no matchups
         self._genMatchUpRecursive(list(range(0, len(self.teams))), [])
+        # convert back to [MatchUp] (w/ str description)
         convertedMatchUp = []
         for matchUpInt in self.bestMatchUp:
             matchUp = MatchUp(self.ranking[matchUpInt.first], self.ranking[matchUpInt.second])
             convertedMatchUp.append(matchUp)
+        # debug messages
         if debug:
             for matchUp in convertedMatchUp:
                 print(matchUp.first, ":", matchUp.second)
-            print("loss", self.bestLoss)
+            print("Distance in ranking table: loss=", self.bestLoss)
         return convertedMatchUp

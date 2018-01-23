@@ -1,4 +1,8 @@
 class Slot:
+    """ time slot for a game
+    start and end time in #minutes from 00:00
+    locationId for gym
+    """
     start = 0
     end = 0
     locationId = -1
@@ -9,6 +13,8 @@ class Slot:
         self.locationId = locationId
 
     def distance(self, other) -> int:
+        """ time between two slots
+        """
         if self.start <= other.start:
             return other.start - self.end
         else:
@@ -16,6 +22,8 @@ class Slot:
 
 
 class MatchUp:
+    """ matchup between two teams
+    """
     first = ""
     second = ""
 
@@ -25,6 +33,8 @@ class MatchUp:
 
 
 class Match:
+    """ combination of matchup and slot for the game
+    """
     matchUp = MatchUp("", "")
     timeRange = Slot(0, 0, -1)
 
@@ -34,6 +44,8 @@ class Match:
 
 
 class Result:
+    """ combination of matchup and scores for each team
+    """
     matchUp = MatchUp("", "")
     first = -1
     second = -1
