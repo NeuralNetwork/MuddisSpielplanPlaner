@@ -40,7 +40,7 @@ currentRanking = [
     "Paradisco",
 ]
 
-dataDir = "./testData"
+dataDir = "./testData/fourth_round"
 # read results from CSV into list[Result]
 results = []
 resultsFile = open(join(dataDir, "results.csv"))
