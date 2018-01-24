@@ -40,8 +40,8 @@ currentRanking = [
     "Paradisco",
 ]
 
-# read results from CSV into list[Result]
 dataDir = "./testData"
+# read results from CSV into list[Result]
 results = []
 resultsFile = open(join(dataDir, "results.csv"))
 resultsCsv = csv.reader(resultsFile, delimiter=';')
