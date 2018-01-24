@@ -1,0 +1,27 @@
+start 10:22 end 10:50 (hall 2)  RotPot : Paradisco
+minutes between games for RotPot: 84
+minutes between games for Paradisco: 84
+start 10:24 end 10:52 (hall 1)  Wild Things : Göttinger 7
+minutes between games for Wild Things: 86
+minutes between games for Göttinger 7: 86
+start 10:37 end 11:05 (hall 3)  Airpussies : Cakes
+minutes between games for Airpussies: 84
+minutes between games for Cakes: 69
+start 10:50 end 11:18 (hall 2)  Häßliche Erdferkel : Saxy Divers
+minutes between games for Häßliche Erdferkel: 82
+minutes between games for Saxy Divers: 97
+start 10:52 end 11:20 (hall 1)  Goldfingers : Funatoren
+minutes between games for Goldfingers: 114
+minutes between games for Funatoren: 71
+start 11:05 end 11:33 (hall 3)  Caracals : Drehst'n Deckel
+minutes between games for Caracals: 84
+minutes between games for Drehst'n Deckel: 127
+start 11:18 end 11:46 (hall 2)  Uproar Ultimate : Hucks
+minutes between games for Uproar Ultimate: 84
+minutes between games for Hucks: 112
+start 11:20 end 11:48 (hall 1)  Endzonis : Alsterkutter
+minutes between games for Endzonis: 84
+minutes between games for Alsterkutter: 86
+start 11:33 end 12:01 (hall 3)  UMS : Frühsport
+minutes between games for UMS: 97
+minutes between games for Frühsport: 127
