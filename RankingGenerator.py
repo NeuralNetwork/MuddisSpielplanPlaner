@@ -77,7 +77,7 @@ def generateNewRanking(currentRanking: List[str], games: List[Game], debug=False
             print(item)
         print("initial Erorr: loss=", calculateTotalError(currentRanking, games))
     # cover large range of possible random permutations:
-    for i in range(0,1000000):
+    for i in range(0,150000):
         # calculate total Error made by current ranking
         currentLoss = calculateTotalError(newRanking, games)
         losses.append(currentLoss)
