@@ -2,7 +2,7 @@ import csv
 from RankingGenerator import generateNewRanking
 from MatchUpGenerator import MatchUpGenerator
 from SwissGameScheduler import SwissGameScheduler
-from TournamentDescriptionClasses import Match, Slot, Result
+from TournamentDescriptionClasses import MatchUp, Result, Slot, Game
 from os.path import join
 from time import time
 
@@ -46,7 +46,7 @@ results = []
 resultsFile = open(join(dataDir, "results.csv"))
 resultsCsv = csv.reader(resultsFile, delimiter=';')
 for row in resultsCsv:
-    results.append(Result(row[0], row[1], int(row[2]), int(row[3])))
+    results.append(Game(MatchUp(row[0], row[1]), Result(int(row[2]), int(row[3])), None))
 resultsFile.close()
 
 # read previous matches from CSV into list[Match]
@@ -54,7 +54,7 @@ previousMatches = []
 previousMatchesFile = open(join(dataDir, "previousMatches.csv"))
 previousMatchesCsv = csv.reader(previousMatchesFile, delimiter=';')
 for row in previousMatchesCsv:
-    previousMatches.append(Match(row[0], row[1], hhmmTom(row[2]), hhmmTom(row[3]), int(row[4])))
+    previousMatches.append(Game(MatchUp(row[0], row[1]), None, Slot(hhmmTom(row[2]), hhmmTom(row[3]), int(row[4]))))
 previousMatchesFile.close()
 
 # generate current ranking (debug=True)
@@ -71,14 +71,14 @@ print("time for ranking: {0}s".format(t1-t0))
 resultsWithoutResultsFile = open(join(dataDir, "resultswithoutresults.csv"))
 resultsWithoutResultsCsv = csv.reader(resultsWithoutResultsFile, delimiter=';')
 for row in resultsWithoutResultsCsv:
-    results.append(Result(row[0], row[1], int(row[2]), int(row[3])))
+    results.append(Game(MatchUp(row[0], row[1]), Result(int(row[2]), int(row[3])), None))
 
 # read future game slots from CSV into list[Slot]
 futureSlots = []
 futureSlotsFile = open(join(dataDir, "./futureSlots.csv"))
 futureSlotsCsv = csv.reader(futureSlotsFile, delimiter=';')
 for row in futureSlotsCsv:
-    futureSlots.append(Slot(hhmmTom(row[0]), hhmmTom(row[1]), int(row[2])))
+    futureSlots.append(Game(None, None, Slot(hhmmTom(row[0]), hhmmTom(row[1]), int(row[2]))))
 futureSlotsFile.close()
 
 # generate future Matchups, depending on current ranking and previous results

@@ -1,4 +1,4 @@
-from TournamentDescriptionClasses import MatchUp, Result
+from TournamentDescriptionClasses import MatchUp, Game
 import sys
 from typing import List
 
@@ -27,13 +27,13 @@ class MatchUpGenerator:
     bestLoss = sys.maxsize
     bestMatchUp = []
 
-    def __init__(self, ranking: List[str], results: List[Result]):
+    def __init__(self, ranking: List[str], results: List[Game]):
         """ initialize ranking, teams, pastMatchUps, AlreadyPlayedLuT
         """
         self.ranking = ranking
         self.teams = ranking
         for result in results:
-            matchUpInt = MatchUpInt(ranking.index(result.matchUp.first), ranking.index(result.matchUp.second))
+            matchUpInt = MatchUpInt(ranking.index(result.matchup.first), ranking.index(result.matchup.second))
             self.pastMatchUps.append(matchUpInt)
         self._genAlreadyPlayedLookUpTable()
 
@@ -96,7 +96,7 @@ class MatchUpGenerator:
         return abs(matchUp.first - matchUp.second)
 
 
-    def generateMatchUps(self, debug=False) -> List[MatchUp]:
+    def generateMatchUps(self, debug=False) -> List[Game]:
         """ Generate new matchups for given ranking and played games
         There will be no repetition of already played matchups.
         Under this condition, the matchup w/ minimal distance in the ranking table is sought.
@@ -106,11 +106,11 @@ class MatchUpGenerator:
         # convert back to [MatchUp] (w/ str description)
         convertedMatchUp = []
         for matchUpInt in self.bestMatchUp:
-            matchUp = MatchUp(self.ranking[matchUpInt.first], self.ranking[matchUpInt.second])
+            matchUp = Game(MatchUp(self.ranking[matchUpInt.first], self.ranking[matchUpInt.second]), None, None)
             convertedMatchUp.append(matchUp)
         # debug messages
         if debug:
             for matchUp in convertedMatchUp:
-                print(matchUp.first, ":", matchUp.second)
+                print(matchUp.matchup.first, ":", matchUp.matchup.second)
             print("Distance in ranking table: loss=", self.bestLoss)
         return convertedMatchUp

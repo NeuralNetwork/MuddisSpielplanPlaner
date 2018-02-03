@@ -31,26 +31,28 @@ class MatchUp:
         self.first = first
         self.second = second
 
-
-class Match:
-    """ combination of matchup and slot for the game
-    """
-    matchUp = MatchUp("", "")
-    timeRange = Slot(0, 0, -1)
-
-    def __init__(self, teamA: str, teamB: str, start: int, end: int, locationId: int):
-        self.matchUp = MatchUp(teamA, teamB)
-        self.timeRange = Slot(start, end, locationId)
-
-
 class Result:
-    """ combination of matchup and scores for each team
-    """
-    matchUp = MatchUp("", "")
     first = -1
     second = -1
 
-    def __init__(self, teamA: str, teamB: str, resultA: int, resultB: int):
-        self.matchUp = MatchUp(teamA, teamB)
+    def __init__(self, resultA: int, resultB: int):
         self.first = resultA
         self.second = resultB
+
+class Game:
+    matchup = None
+    result = None
+    slot = None
+
+    def __init__(self, matchup=None, result=None, slot=None):
+        self.matchup = matchup
+        self.result = result
+        self.slot = slot
+
+    def distance(self, other):
+        """ time between two slots
+        """
+        if self.slot.start <= other.slot.start:
+            return other.slot.start - self.slot.end
+        else:
+            return self.slot.start - other.slot.end

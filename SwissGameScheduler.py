@@ -1,36 +1,36 @@
-from TournamentDescriptionClasses import Match, MatchUp, Slot
+from TournamentDescriptionClasses import Game
 import sys
 from typing import List
 
 
 class SwissGameScheduler:
-    def getTimeDelta(self, previousMatches: List[Match], teamName: str, futureSlot: Slot) -> int:
+    def getTimeDelta(self, previousMatches: List[Game], teamName: str, futureSlot: Game) -> int:
         """ calculate pause for teamName between last game and futureSlot
         """
         delta = sys.maxsize
         for match in previousMatches:
-            if match.matchUp.first == teamName or match.matchUp.second == teamName:
-                delta = min(delta, match.timeRange.distance(futureSlot))
+            if match.matchup.first == teamName or match.matchup.second == teamName:
+                delta = min(delta, match.slot.distance(futureSlot.slot))
         return delta
 
 
-    def getTimesPlayedInHall3(self, previousMatches: List[Match], futureMatchUp: MatchUp) -> int:
+    def getTimesPlayedInHall3(self, previousMatches: List[Game], futureMatchUp: Game) -> int:
         """ calculate max(# games played in hall 3) for two teams in futureMatchUp
         """
         numHall3GamesA = 0
         numHall3GamesB = 0
         for match in previousMatches:
-            if match.timeRange.locationId == 3:
-                teamA = futureMatchUp.first
-                teamB = futureMatchUp.second
-                if match.matchUp.first == teamA or match.matchUp.second == teamA:
+            if match.slot.locationId == 3:
+                teamA = futureMatchUp.matchup.first
+                teamB = futureMatchUp.matchup.second
+                if match.matchup.first == teamA or match.matchup.second == teamA:
                     numHall3GamesA += 1
-                if match.matchUp.first == teamB or match.matchUp.second == teamB:
+                if match.matchup.first == teamB or match.matchup.second == teamB:
                     numHall3GamesB += 1
         return max(numHall3GamesA, numHall3GamesB)
 
     #TODO this only if all games happen on the same day! #FIXME
-    def getHallChangeNeeded(self, previousMatches: List[Match], futureMatchUp: MatchUp, futureSlot: Slot) -> bool:
+    def getHallChangeNeeded(self, previousMatches: List[Game], futureMatchUp: Game, futureSlot: Game) -> bool:
         """ calculate if a team needs to change the gym for futureMatchUp
         Searches for last games, ignores day of the weekend.
         """
@@ -41,21 +41,21 @@ class SwissGameScheduler:
         mostRecentHallB = 0
         mostRecentMatchUpTimeB = 0
         for match in previousMatches:
-            teamA = futureMatchUp.first
-            teamB = futureMatchUp.second
-            if match.matchUp.first == teamA or match.matchUp.second == teamA:
-                if match.timeRange.end > mostRecentMatchUpTimeA:
-                    mostRecentHallA = match.timeRange.locationId
+            teamA = futureMatchUp.matchup.first
+            teamB = futureMatchUp.matchup.second
+            if match.matchup.first == teamA or match.matchup.second == teamA:
+                if match.slot.end > mostRecentMatchUpTimeA:
+                    mostRecentHallA = match.slot.locationId
                     if mostRecentHallA == 1 or mostRecentHallA == 2:
                         mostRecentHallA = 1
-            if match.matchUp.first == teamB or match.matchUp.second == teamB:
-                if match.timeRange.end > mostRecentMatchUpTimeB:
-                    mostRecentHallB = match.timeRange.locationId
+            if match.matchup.first == teamB or match.matchup.second == teamB:
+                if match.slot.end > mostRecentMatchUpTimeB:
+                    mostRecentHallB = match.slot.locationId
                     if mostRecentHallB == 1 or mostRecentHallB == 2:
                         mostRecentHallB = 1
         hallChangeNeededA = False
         hallChangeNeededB = False
-        futureHall = futureSlot.locationId
+        futureHall = futureSlot.slot.locationId
         if futureHall == 1 or futureHall == 2:
             futureHall = 1
         if mostRecentMatchUpTimeA != 0:
@@ -67,7 +67,7 @@ class SwissGameScheduler:
         return False
 
 
-    def calculateGain(self, previousMatches: List[Match], futureMatchUp: MatchUp, futureSlot: Slot) -> float:
+    def calculateGain(self, previousMatches: List[Game], futureMatchUp: Game, futureSlot: Game) -> float:
         """ calculate 'Gain' for futureMatchUp in futureSlot
         'Gain' is some value of a future matchup:
         high values are good, low (and negative) values are bad
@@ -82,8 +82,8 @@ class SwissGameScheduler:
         ##
 
         # calculate pauses between games for both teams
-        firstDelta = self.getTimeDelta(previousMatches, futureMatchUp.first, futureSlot)
-        secondDelta = self.getTimeDelta(previousMatches, futureMatchUp.second, futureSlot)
+        firstDelta = self.getTimeDelta(previousMatches, futureMatchUp.matchup.first, futureSlot)
+        secondDelta = self.getTimeDelta(previousMatches, futureMatchUp.matchup.second, futureSlot)
         # subtract optimal pause length from effective pause length
         firstCorrectedDelta = firstDelta - targetDelta
         secondCorrectedDelta = secondDelta- targetDelta
@@ -97,7 +97,7 @@ class SwissGameScheduler:
         if gainSource >= 0:
 
             # penalize multiple games of a certain team in Gym 3
-            if timesPlayedInHall3 > 1 and futureSlot.locationId == 3:
+            if timesPlayedInHall3 > 1 and futureSlot.slot.locationId == 3:
                 return 20 / timesPlayedInHall3
             else:
                 return 20
@@ -105,7 +105,7 @@ class SwissGameScheduler:
         else:
             return -(gainSource**2) # heavily penalize for being above targetDelta threshold
 
-    def genGainMatrix(self, previousMatches: List[Match], futureSlots: List[Slot], futureMatchUps: List[MatchUp]) -> List[List[float]]:
+    def genGainMatrix(self, previousMatches: List[Game], futureSlots: List[Game], futureMatchUps: List[Game]) -> List[List[float]]:
         """ calculate matrix of gain for possible matches
         distributes future matchups onto future slots,
         calculates all possible gains
@@ -130,7 +130,7 @@ class SwissGameScheduler:
         return gainSum
 
 
-    def maximizeGain(self, previousMatches: List[Match], futureSlots: List[Slot], futureMatchUps: List[MatchUp]) -> None:
+    def maximizeGain(self, previousMatches: List[Game], futureSlots: List[Game], futureMatchUps: List[Game]) -> None:
         """ calculate optimal schedule for given futureMatchUps in given futureSlots
         maximize 'Gain' measure for distribution of matchups onto slots
         """
@@ -157,15 +157,15 @@ class SwissGameScheduler:
                         print(currentGainSum)
         # print final schedule
         for i in range(0, len(matchupIndexList)):
-            print("start {} end {} (hall {})  {} : {}".format(self.printTime(futureSlots[i].start),
-                                                              self.printTime(futureSlots[i].end),
-                                                              futureSlots[i].locationId,
-                                                              futureMatchUps[matchupIndexList[i]].first,
-                                                              futureMatchUps[matchupIndexList[i]].second))
-            firstDelta = self.getTimeDelta(previousMatches, futureMatchUps[matchupIndexList[i]].first, futureSlots[i])
-            secondDelta = self.getTimeDelta(previousMatches, futureMatchUps[matchupIndexList[i]].second, futureSlots[i])
-            print("minutes between games for {}: {}".format(futureMatchUps[matchupIndexList[i]].first, firstDelta))
-            print("minutes between games for {}: {}".format(futureMatchUps[matchupIndexList[i]].second, secondDelta))
+            print("start {} end {} (hall {})  {} : {}".format(self.printTime(futureSlots[i].slot.start),
+                                                              self.printTime(futureSlots[i].slot.end),
+                                                              futureSlots[i].slot.locationId,
+                                                              futureMatchUps[matchupIndexList[i]].matchup.first,
+                                                              futureMatchUps[matchupIndexList[i]].matchup.second))
+            firstDelta = self.getTimeDelta(previousMatches, futureMatchUps[matchupIndexList[i]].matchup.first, futureSlots[i])
+            secondDelta = self.getTimeDelta(previousMatches, futureMatchUps[matchupIndexList[i]].matchup.second, futureSlots[i])
+            print("minutes between games for {}: {}".format(futureMatchUps[matchupIndexList[i]].matchup.first, firstDelta))
+            print("minutes between games for {}: {}".format(futureMatchUps[matchupIndexList[i]].matchup.second, secondDelta))
 
 
     def printTime(self, minutes: int) -> str:

@@ -1,4 +1,4 @@
-from TournamentDescriptionClasses import Result
+from TournamentDescriptionClasses import Game
 import random
 import sys
 import matplotlib.pyplot as plt
@@ -36,18 +36,18 @@ def swap(list: List[str], indexA: int, indexB: int):
     list[indexB] = temp
 
 
-def calculateTotalError(currentRanking: List[str], results: List[Result]) -> float:
+def calculateTotalError(currentRanking: List[str], games: List[Game]) -> float:
     """ Error between obtained results and results expected from ranking
     Takes into account all obtained results so far
     Converts given Ranking into results using conversion table
     Calculates quadratic error
     """
     lossSum = 0
-    for result in results:
-        rankA = currentRanking.index(result.matchUp.first)
-        rankB = currentRanking.index(result.matchUp.second)
+    for game in games:
+        rankA = currentRanking.index(game.matchup.first)
+        rankB = currentRanking.index(game.matchup.second)
         rankDelta = rankA - rankB
-        resultDelta = result.first - result.second
+        resultDelta = game.result.first - game.result.second
         predictedResultDelta = rankDeltaToResultDelta[abs(rankDelta)]
         if rankDelta > 0:
             predictedResultDelta *= -1
@@ -55,7 +55,7 @@ def calculateTotalError(currentRanking: List[str], results: List[Result]) -> flo
     return lossSum
 
 
-def generateNewRanking(currentRanking: List[str], results: List[Result], debug=False) -> List[str]:
+def generateNewRanking(currentRanking: List[str], games: List[Game], debug=False) -> List[str]:
     """ heuristic search for an optimal Ranking to explain the results
     compares random permutations in their total error
     uses some variant of simulated annealing for the search
@@ -75,11 +75,11 @@ def generateNewRanking(currentRanking: List[str], results: List[Result], debug=F
         print("Original ranking:")
         for item in currentRanking:
             print(item)
-        print("initial Erorr: loss=", calculateTotalError(currentRanking, results))
+        print("initial Erorr: loss=", calculateTotalError(currentRanking, games))
     # cover large range of possible random permutations:
     for i in range(0,1000000):
         # calculate total Error made by current ranking
-        currentLoss = calculateTotalError(newRanking, results)
+        currentLoss = calculateTotalError(newRanking, games)
         losses.append(currentLoss)
         # randomly permute the ranking
         indexA = random.randint(0, len(currentRanking)-1)
@@ -88,7 +88,7 @@ def generateNewRanking(currentRanking: List[str], results: List[Result], debug=F
             indexB = random.randint(0, len(currentRanking)-1)
         swap(newRanking, indexA, indexB)
         # calculate total error of new ranking
-        newLoss = calculateTotalError(newRanking, results)
+        newLoss = calculateTotalError(newRanking, games)
         # if better: save optimal solution
         if newLoss < minimalLoss: 
             minimalLoss = newLoss
