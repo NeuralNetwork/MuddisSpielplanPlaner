@@ -66,13 +66,13 @@ def evalFunction(numRounds):
     results = []
     losses = []
     for i in range(0, numRounds):
-        #TODO generate matchups
+        # generate matchups
         matchUpGenerator = MatchUpGenerator(ranking, results)
         futureMatchUps = matchUpGenerator.generateMatchUps(False)
-        #TODO generate results
+        # generate results
         for matchup in futureMatchUps:
             results.append(genResult(matchup.matchup.first, matchup.matchup.second))
-        #TODO generate ranking
+        # generate ranking
         ranking = generateNewRanking(ranking, results, False)
         losses.append(calculateRankingLoss(expectedRanking, ranking))
     return np.array(losses)
