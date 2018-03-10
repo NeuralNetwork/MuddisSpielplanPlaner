@@ -30,6 +30,7 @@ class MatchUpGenerator:
     def __init__(self, ranking: List[str], results: List[Game]):
         """ initialize ranking, teams, pastMatchUps, AlreadyPlayedLuT
         """
+        assert len(ranking) % 2 == 0 # prevent ifinite loops, otherwise a team remains and this is not handled gracefully
         self.ranking = ranking
         self.teams = ranking
         for result in results:
