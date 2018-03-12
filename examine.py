@@ -36,7 +36,7 @@ def genOneResult(muPos, sigmaUp, sigmaDown):
     else:
         offset = abs(np.random.normal(0, sigmaDown))
         result = muPos + offset
-    return result
+    return max(result, 0)
 
 def genResult(teamA, teamB):
     paramsA = teamParams[teamA]
