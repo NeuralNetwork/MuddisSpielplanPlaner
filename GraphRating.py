@@ -19,11 +19,13 @@ def colorizeTeamsRec(colorlessTeams: Dict[str,ColorAndEdges], invalidColor: int,
             colorizeTeamsRec(colorlessTeams, invalidColor, validColor, team)
 
 
+# @return returns maximum valid coclor
 def colorizeTeams(colorlessTeams: Dict[str,ColorAndEdges], invalidColor: int, validColor: int, currentRanking: List[str]):
     for team in currentRanking:
         if colorlessTeams[team].color == invalidColor:
             validColor += 1
         colorizeTeamsRec(colorlessTeams, invalidColor, validColor, team)
+    return validColor
 
 
 def genSubgraphMemberList(coloredTeams: Dict[str,ColorAndEdges]):
@@ -60,12 +62,11 @@ def rateFutureGames(playedGames: List[Game], futureGames: List[Game], currentRan
         coloredTeams[game.matchup.first].playedTeams.extend(game.matchup.second)
         coloredTeams[game.matchup.second].playedTeams.extend(game.matchup.first)
 
-    colorizeTeams(coloredTeams, invalidColor, validColor, currentRanking)
+    maxValidColor = colorizeTeams(coloredTeams, invalidColor, validColor, currentRanking)
 
     ## setup fused subgraphs
     colorlessFusedSubgraphs = dict()
-    #TODO is len(coloredTeams) the right thing to do?
-    for i in range(0,len(coloredTeams)):
+    for i in range(0,maxValidColor+1):
         colorlessFusedSubgraphs[str(i)] = ColorAndEdges(invalidColor, [])
 
     ## fill "played" subgraphs
@@ -85,8 +86,9 @@ def rateFutureGames(playedGames: List[Game], futureGames: List[Game], currentRan
     ## calculate rating
     # optimally each subgraph should get connected by the same number of games
     # this hopefully ensures that subgraphs are pushed away by the same "force" in the ranking optimization step
-    optimalNumEdges = len(futureGames) / len(colorlessFusedSubgraphs)
+    # multiply by to, since edges are bidirectional
+    optimalNumEdges = len(futureGames) / len(colorlessFusedSubgraphs) * 2
     error = 0.0
-    for key, fusedSubgraph in colorlessFusedSubgraphs:
+    for key, fusedSubgraph in colorlessFusedSubgraphs.items():
         error += (len(fusedSubgraph.playedTeams) - optimalNumEdges)**2
     return error
