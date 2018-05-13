@@ -14,8 +14,6 @@ def colorizeTeamsRec(colorlessTeams: Dict[str,ColorAndEdges], invalidColor: int,
     else:
         colorlessTeams[teamName].color = validColor
         for team in colorlessTeams[teamName].playedTeams:
-            if colorlessTeams[team].color == invalidColor:
-                colorlessTeams[team].color = validColor
             colorizeTeamsRec(colorlessTeams, invalidColor, validColor, team)
 
 

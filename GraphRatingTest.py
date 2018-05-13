@@ -29,10 +29,34 @@ class TestGraphRating(unittest.TestCase):
         teams = []
         self.assertRaises(Exception, GraphRating.rateFutureGames, playedGames, futureGames, teams)
 
-    def test_smallGraph(self):
+    # graph is already fully connected
+    def test_oneSubgraph(self):
+        playedGames = [Game(MatchUp("a", "b")),
+                       Game(MatchUp("c", "d")),
+                       Game(MatchUp("e", "f")),
+                       Game(MatchUp("a", "c")),
+                       Game(MatchUp("d", "f")),
+                       Game(MatchUp("e", "b"))]
+        futureGames = [Game(MatchUp("a", "f")),
+                       Game(MatchUp("b", "c")),
+                       Game(MatchUp("d", "e"))]
+        teams = ["a", "b", "c", "d", "e", "f"]
+        self.assertEqual(GraphRating.rateFutureGames(playedGames, futureGames, teams), 0)
+
+    def test_twoSubgraphs(self):
         playedGames = [Game(MatchUp("a", "b")), Game(MatchUp("c", "d"))]
         futureGames = [Game(MatchUp("b", "c")), Game(MatchUp("a", "d"))]
         teams = ["a", "b", "c", "d"]
+        self.assertEqual(GraphRating.rateFutureGames(playedGames, futureGames, teams), 0)
+
+    def test_threeSubgraphs(self):
+        playedGames = [Game(MatchUp("a", "b")),
+                       Game(MatchUp("c", "d")),
+                       Game(MatchUp("e", "f"))]
+        futureGames = [Game(MatchUp("a", "c")),
+                       Game(MatchUp("d", "f")),
+                       Game(MatchUp("e", "b"))]
+        teams = ["a", "b", "c", "d", "e", "f"]
         self.assertEqual(GraphRating.rateFutureGames(playedGames, futureGames, teams), 0)
 
 if __name__ == '__main__':
