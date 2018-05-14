@@ -1,6 +1,7 @@
 import unittest
 import sys
 from typing import List
+from random import shuffle
 import GraphRating
 from TournamentDescriptionClasses import Game, MatchUp
 
@@ -42,12 +43,22 @@ class TestGraphRating(unittest.TestCase):
                        Game(MatchUp("d", "e"))]
         teams = ["a", "b", "c", "d", "e", "f"]
         self.assertEqual(GraphRating.rateFutureGames(playedGames, futureGames, teams), 0)
+        for i in range (0, 10):
+            shuffle(playedGames)
+            shuffle(futureGames)
+            shuffle(teams)
+            self.assertEqual(GraphRating.rateFutureGames(playedGames, futureGames, teams), 0)
 
     def test_twoSubgraphs(self):
         playedGames = [Game(MatchUp("a", "b")), Game(MatchUp("c", "d"))]
         futureGames = [Game(MatchUp("b", "c")), Game(MatchUp("a", "d"))]
         teams = ["a", "b", "c", "d"]
         self.assertEqual(GraphRating.rateFutureGames(playedGames, futureGames, teams), 0)
+        for i in range (0, 5):
+            shuffle(playedGames)
+            shuffle(futureGames)
+            shuffle(teams)
+            self.assertEqual(GraphRating.rateFutureGames(playedGames, futureGames, teams), 0)
 
     def test_threeSubgraphs(self):
         playedGames = [Game(MatchUp("a", "b")),
@@ -58,6 +69,11 @@ class TestGraphRating(unittest.TestCase):
                        Game(MatchUp("e", "b"))]
         teams = ["a", "b", "c", "d", "e", "f"]
         self.assertEqual(GraphRating.rateFutureGames(playedGames, futureGames, teams), 0)
+        for i in range (0, 10):
+            shuffle(playedGames)
+            shuffle(futureGames)
+            shuffle(teams)
+            self.assertEqual(GraphRating.rateFutureGames(playedGames, futureGames, teams), 0)
 
 if __name__ == '__main__':
     unittest.main()
