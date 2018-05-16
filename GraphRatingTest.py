@@ -75,5 +75,35 @@ class TestGraphRating(unittest.TestCase):
             shuffle(teams)
             self.assertEqual(GraphRating.rateFutureGames(playedGames, futureGames, teams), 0)
 
+    def test_threeSubgraphsLarge(self):
+        playedGames = [
+            # subgraph0
+            Game(MatchUp("a", "b")),
+            Game(MatchUp("a", "f")),
+            Game(MatchUp("b", "c")),
+            Game(MatchUp("c", "d")),
+            Game(MatchUp("d", "e")),
+            Game(MatchUp("e", "f")),
+            # subgraph1
+            Game(MatchUp("m", "n")),
+            Game(MatchUp("m", "k")),
+            Game(MatchUp("n", "l")),
+            Game(MatchUp("l", "k")),
+            # subgraph2
+            Game(MatchUp("j", "g")),
+            Game(MatchUp("j", "i")),
+            Game(MatchUp("g", "h")),
+            Game(MatchUp("h", "i"))]
+        futureGames = [Game(MatchUp("f", "g")),
+                       Game(MatchUp("m", "a"))]
+        teams = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n"]
+        self.assertAlmostEqual(GraphRating.rateFutureGames(playedGames, futureGames, teams), 0.666666, 5)
+        for i in range (0, 10):
+            shuffle(playedGames)
+            shuffle(futureGames)
+            shuffle(teams)
+            self.assertAlmostEqual(GraphRating.rateFutureGames(playedGames, futureGames, teams), 0.666666, 5)
+
+
 if __name__ == '__main__':
     unittest.main()
