@@ -1,6 +1,36 @@
 from TournamentDescriptionClasses import MatchUp, Game
+from GraphRating import rateFutureGames
 import sys
 from typing import List
+
+class BestMatchUpsManager:
+    def __init__(self, numBestMatchUps):
+        self._maxLoss = sys.float_info.max
+        self._maxNumMatchUps = numBestMatchUps
+        self._matchUps = []
+
+    def manage(self, matchUp, loss):
+        if loss < self._maxLoss:
+            self._insert(matchUp, loss)
+            self._prune()
+
+    def bestMatchUps(self):
+        theBest = []
+        for pair in self._matchUps:
+            theBest.append(pair[1])
+        return theBest
+
+    def _insert(self, matchUp, loss):
+        for i, pair in enumerate(self._matchUps):
+            if loss < pair[0]:
+                self._matchUps.insert(i, (loss, matchUp))
+                return
+        self._matchUps.append((loss, matchUp))
+
+    def _prune(self):
+        if len(self._matchUps) > self._maxNumMatchUps:
+            self._matchUps.pop()
+            self._maxLoss = self._matchUps[-1][0]
 
 class MatchUpInt:
     """ describe Matchup in Indices of ranking table
@@ -16,6 +46,7 @@ class MatchUpInt:
 class MatchUpGenerator:
     # list of teams present, following current ranking
     teams = []
+    playedGames = []
 
     # ranking of teams [str]
     ranking = []
@@ -25,7 +56,6 @@ class MatchUpGenerator:
     alreadyPlayedLuT = []
 
     bestLoss = sys.maxsize
-    bestMatchUp = []
 
     def __init__(self, ranking: List[str], results: List[Game]):
         """ initialize ranking, teams, pastMatchUps, AlreadyPlayedLuT
@@ -33,10 +63,12 @@ class MatchUpGenerator:
         assert len(ranking) % 2 == 0 # prevent ifinite loops, otherwise a team remains and this is not handled gracefully
         self.ranking = ranking
         self.teams = ranking
+        self.playedGames = results
         for result in results:
             matchUpInt = MatchUpInt(ranking.index(result.matchup.first), ranking.index(result.matchup.second))
             self.pastMatchUps.append(matchUpInt)
         self._genAlreadyPlayedLookUpTable()
+        self._bestMatchUpManager = BestMatchUpsManager(1000)
 
     def _genAlreadyPlayedLookUpTable(self):
         """ create Table [[Bool]], size: #Teams**2
@@ -65,8 +97,7 @@ class MatchUpGenerator:
             # if distance in ranking table is minimal, take as optimal MatchUps
             if loss < self.bestLoss:
                 self.bestLoss = loss
-                self.bestMatchUp = matchUps[:]
-                return
+            self._bestMatchUpManager.manage(matchUps[:], loss)
         else:
             # start w/ first index in list indexA
             indexA = indizes[0]
@@ -105,13 +136,21 @@ class MatchUpGenerator:
         # start recursive generation of matchups: all teams to distribute, no matchups, no loss yet
         self._genMatchUpRecursive(list(range(0, len(self.teams))), [], 0)
         # convert back to [MatchUp] (w/ str description)
-        convertedMatchUp = []
-        for matchUpInt in self.bestMatchUp:
-            matchUp = Game(MatchUp(self.ranking[matchUpInt.first], self.ranking[matchUpInt.second]), None, None)
-            convertedMatchUp.append(matchUp)
+        bestFullyConnectedMatchUp = []
+        bestWeightedLoss = sys.float_info.max
+        for goodMatchUpList in self._bestMatchUpManager.bestMatchUps():
+            convertedMatchUp = []
+            for matchUpInt in goodMatchUpList:
+                matchUp = Game(MatchUp(self.ranking[matchUpInt.first], self.ranking[matchUpInt.second]), None, None)
+                convertedMatchUp.append(matchUp)
+            rating = rateFutureGames(self.playedGames, convertedMatchUp, self.teams)
+            if rating < bestWeightedLoss:
+                bestWeightedLoss = rating
+                bestFullyConnectedMatchUp = convertedMatchUp
+
         # debug messages
         if debug:
-            for matchUp in convertedMatchUp:
+            for matchUp in bestFullyConnectedMatchUp:
                 print(matchUp.matchup.first, ":", matchUp.matchup.second)
             print("Distance in ranking table: loss=", self.bestLoss)
-        return convertedMatchUp
+        return bestFullyConnectedMatchUp
