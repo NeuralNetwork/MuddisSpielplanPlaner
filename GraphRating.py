@@ -57,8 +57,8 @@ def rateFutureGames(playedGames: List[Game], futureGames: List[Game], currentRan
 
     ## fill played teams
     for game in playedGames:
-        coloredTeams[game.matchup.first].playedTeams.extend(game.matchup.second)
-        coloredTeams[game.matchup.second].playedTeams.extend(game.matchup.first)
+        coloredTeams[game.matchup.first].playedTeams.append(game.matchup.second)
+        coloredTeams[game.matchup.second].playedTeams.append(game.matchup.first)
 
     maxValidColor = colorizeTeams(coloredTeams, invalidColor, validColor, currentRanking)
 
