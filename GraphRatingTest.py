@@ -60,6 +60,17 @@ class TestGraphRating(unittest.TestCase):
             shuffle(teams)
             self.assertEqual(GraphRating.rateFutureGames(playedGames, futureGames, teams), 0)
 
+    def test_twoSubgraphsAndLongNames(self):
+        playedGames = [Game(MatchUp("awww", "bxxx")), Game(MatchUp("cyyy", "dzzz"))]
+        futureGames = [Game(MatchUp("bxxx", "cyyy")), Game(MatchUp("awww", "dzzz"))]
+        teams = ["awww", "bxxx", "cyyy", "dzzz"]
+        self.assertEqual(GraphRating.rateFutureGames(playedGames, futureGames, teams), 0)
+        for i in range (0, 5):
+            shuffle(playedGames)
+            shuffle(futureGames)
+            shuffle(teams)
+            self.assertEqual(GraphRating.rateFutureGames(playedGames, futureGames, teams), 0)
+
     def test_threeSubgraphs(self):
         playedGames = [Game(MatchUp("a", "b")),
                        Game(MatchUp("c", "d")),
