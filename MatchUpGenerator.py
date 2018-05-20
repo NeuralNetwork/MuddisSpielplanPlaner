@@ -15,10 +15,13 @@ class BestMatchUpsManager:
             self._prune()
 
     def bestMatchUps(self):
-        theBest = []
-        for pair in self._matchUps:
-            theBest.append(pair[1])
-        return theBest
+        return self._matchUps
+
+    def maxLoss(self):
+        return self._maxLoss
+
+    def full(self):
+        return len(self._matchUps) == self._maxNumMatchUps
 
     def _insert(self, matchUp, loss):
         for i, pair in enumerate(self._matchUps):
@@ -111,7 +114,8 @@ class MatchUpGenerator:
                 matchUps.append(MatchUpInt(indexA, indexB))
                 addedMatchUpLoss = self._calculateMatchUpLoss(matchUps[-1])
                 # ignore if this matchup has already happened or the accumulated loss is worse than the best yet achieved
-                if not self._hasMatchupAlreadyOccured(matchUps) and loss+addedMatchUpLoss < self.bestLoss:
+                if not self._hasMatchupAlreadyOccured(matchUps) and \
+                        (loss+addedMatchUpLoss < self._bestMatchUpManager.maxLoss() or not self._bestMatchUpManager.full()):
                     self._genMatchUpRecursive(indizesBCopy, matchUps, loss+addedMatchUpLoss)
                 matchUps.pop()
 
@@ -136,14 +140,17 @@ class MatchUpGenerator:
         # start recursive generation of matchups: all teams to distribute, no matchups, no loss yet
         self._genMatchUpRecursive(list(range(0, len(self.teams))), [], 0)
         # convert back to [MatchUp] (w/ str description)
+        # select best matchup considering the connection ratings too
         bestFullyConnectedMatchUp = []
         bestWeightedLoss = sys.float_info.max
-        for goodMatchUpList in self._bestMatchUpManager.bestMatchUps():
+        for pair in self._bestMatchUpManager.bestMatchUps():
+            loss = pair[0]
+            goodMatchUpList = pair[1]
             convertedMatchUp = []
             for matchUpInt in goodMatchUpList:
                 matchUp = Game(MatchUp(self.ranking[matchUpInt.first], self.ranking[matchUpInt.second]), None, None)
                 convertedMatchUp.append(matchUp)
-            rating = rateFutureGames(self.playedGames, convertedMatchUp, self.teams)
+            rating = rateFutureGames(self.playedGames, convertedMatchUp, self.teams) * loss
             if rating < bestWeightedLoss:
                 bestWeightedLoss = rating
                 bestFullyConnectedMatchUp = convertedMatchUp
