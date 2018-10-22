@@ -1,4 +1,4 @@
-%module example
+%module RankingGenerator
     %{
     /* Includes the header in the wrapper code */
     #include "RankingGenerator.h"
