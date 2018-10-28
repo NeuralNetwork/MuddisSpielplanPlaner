@@ -1,7 +1,7 @@
 import unittest
 from DatabaseHandler import DatabaseHandler
-from TournamentDescriptionClasses import MatchUp, Result, Game
-from TeamDecriptionClasses import Team
+from TournamentDescriptionClasses import Slot, MatchUp, Result, Game, Team
+import time
 
 def minutesToTime(minutes: int):
     hour = int(minutes / 60)
@@ -33,6 +33,18 @@ class TestConnectionHandling(unittest.TestCase):
         for team in teams:
             print(team.name + ", " + team.acronym + ", " + str(team.teamId))
         self.assertGreater(len(teams),0)
+
+    def test_insertSlot(self):
+        print("testing insertion of slots")
+        startTime = (2019, 1, 15, 9, 10, 0, 0, 0, 0) #15.01.2019 9:00:00
+        start = time.mktime( startTime )
+        end = start + (30*60);
+        slot = Slot(start, end, 1)
+        self.instance.insertSlot(slot)
+
+    def test_insertSlot(self):
+        print("testing gettingListOfPlayedGames")
+        self.instance.getListOfPlayedGames()
 
     @classmethod    
     def tearDownClass(self):

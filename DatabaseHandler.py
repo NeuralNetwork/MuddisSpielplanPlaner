@@ -2,8 +2,8 @@ import os
 from configparser import ConfigParser
 import mysql.connector 
 from mysql.connector import MySQLConnection,Error
-from TournamentDescriptionClasses import Slot
-from TeamDecriptionClasses import Team
+from TournamentDescriptionClasses import Slot, Team, MatchUp, Game, Result
+import time
 
 class DatabaseHandler:    
     module_dir = os.path.dirname(__file__)
@@ -15,27 +15,131 @@ class DatabaseHandler:
         print("destruct DatabaseHandler")
         if self.conn.is_connected():
             self.disconnect()
-    
-    def getListOfUpcomingSlots(self)->Slot:
+
+    ###################################################################################
+    def getListOfUpcomingSlots(self, timeThreshold=None)->Slot:
+        if timeThreshold == None:          
+            timeThreshold =  int(time.time())
         slots = []
-        if self.conn.is_connected():         
-            slots.append(Slot(620,650,1))
-            slots.append(Slot(625,655,2))
-            slots.append(Slot(650,680,3))            
+        if self.conn.is_connected():            
+
+            query = "SELECT start, end, location_id FROM slot WHERE start > %s"
+            args = (timeThreshold, )           
+
+            try:                
+                cursor = self.conn.cursor(dictionary=True)
+                cursor.execute(query, args)
+                row = cursor.fetchone() 
+                while row is not None:
+                    print(row)
+                    slot = Slot(row["start"], row["end"], row["location_id"])
+                    slots.append(slot)
+                    row = cursor.fetchone()              
+ 
+            except Error as e:
+                print(e)
+ 
+            finally:
+                cursor.close()       
         else:
             raise NoDatabaseConnection()
 
         return slots
 
+
+    ###################################################################################
+    def getListOfPlayedGames(self)->Slot:
+        games = []
+        if self.conn.is_connected():            
+            query = "SELECT slot.start AS start, slot.end AS end, slot.location_id AS location_id, location.name AS location_name, location.description, game.completed, team1.name AS team1_name, team2.name AS team2_name, result.team1_score, result.team2_score \
+                        FROM slot  \
+                        INNER JOIN location ON location.location_id = slot.location_id \
+                        INNER JOIN game ON game.slot_id = slot.slot_id \
+                        INNER JOIN matchup ON game.matchup_id = matchup.matchup_id \
+                        INNER JOIN team AS team1 ON matchup.team1_id = team1.team_id \
+                        INNER JOIN team AS team2 ON matchup.team2_id = team2.team_id \
+                        INNER JOIN result ON matchup.result_id = result.result_id\
+                        ORDER BY slot.location_id"
+
+            #query = "SELECT start, end, locationId FROM slot WHERE start > %s"
+           # args = (timeThreshold, )           
+
+            try:                
+                cursor = self.conn.cursor(dictionary=True)
+                cursor.execute(query)
+                row = cursor.fetchone() 
+                while row is not None:
+                    print(row)
+                    matchup = MatchUp(row["team1_name"],row["team2_name"])
+                    slot = Slot(row["start"],row["end"],row["location_id"])
+                    result = Result(row["team1_score"], row["team2_score"])
+                    game = Game(matchup,result,slot)
+                    games.append(game)
+                    #print(row["team1_name"])
+                    #slot = Slot(row["start"], row["end"], row["locationId"])
+                    #slots.append(slot)
+                    row = cursor.fetchone()              
+ 
+            except Error as e:
+                print(e)
+ 
+            finally:
+                cursor.close()       
+        else:
+            raise NoDatabaseConnection()
+
+        return  games
+
+
+
+######################################################################################
     def getListOfAllTeams(self)->Team:
         teams = []
-        if self.conn.is_connected():         
-            teams.append(Team("Deine Mudder Bremen", "DMB", 1))
-            teams.append(Team("RotatoesPotatoes", "RP", 2))    
-            teams.append(Team("Funatics", "FUN", 3))
+        if self.conn.is_connected():             
+            query = "SELECT team_id, name, acronym FROM team"   
+
+            try:                
+                cursor = self.conn.cursor(dictionary=True)                
+                cursor.execute(query)
+                row = cursor.fetchone() 
+                while row is not None:
+                    print(row)
+                    team =Team (row["name"], row["acronym"], row["team_id"])
+                    teams.append(team)
+                    row = cursor.fetchone()              
+ 
+            except Error as e:
+                print(e)
+ 
+            finally:
+                cursor.close()      
         else:
             raise NoDatabaseConnection()
         return teams
+
+
+#######################################################################################
+    def insertSlot(self, slot: Slot):
+        query = "INSERT INTO slot(start ,end ,locationId) " \
+                    "VALUES(%s,%s,%s)"
+        args = (slot.start, slot.end, slot.locationId)
+ 
+        try: 
+            cursor = self.conn.cursor()
+          #  cursor.execute(query, args)
+ 
+            if cursor.lastrowid:
+                print('last insert id', cursor.lastrowid)
+            else:
+                print('last insert id not found')
+ 
+            self.conn.commit()
+        except Error as error:
+            print(error)
+ 
+        finally:
+            cursor.close()
+
 
     def connect(self):
         """ Connect to MySQL database """
