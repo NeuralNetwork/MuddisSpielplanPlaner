@@ -56,3 +56,12 @@ class Game:
             return other.slot.start - self.slot.end
         else:
             return self.slot.start - other.slot.end
+class Team:
+    name = ""
+    acronym = ""
+    teamId = -1
+
+    def __init__(self, name: str, acronym: str, teamId: int ):
+        self.name = name
+        self.acronym = acronym
+        self.teamId = teamId
