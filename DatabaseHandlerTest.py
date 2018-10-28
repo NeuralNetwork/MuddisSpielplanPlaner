@@ -39,12 +39,12 @@ class TestConnectionHandling(unittest.TestCase):
         startTime = (2019, 1, 15, 9, 10, 0, 0, 0, 0) #15.01.2019 9:00:00
         start = time.mktime( startTime )
         end = start + (30*60);
-        slot = Slot(start, end, 1)
-        self.instance.insertSlot(slot)
+        slot = Slot(start, end, 2)
+        self.instance.insertSlot(slot,1)
 
-    def test_insertSlot(self):
+    def test_getListOfGames(self):
         print("testing gettingListOfPlayedGames")
-        self.instance.getListOfPlayedGames()
+        self.instance.getListOfGames()
 
     @classmethod    
     def tearDownClass(self):

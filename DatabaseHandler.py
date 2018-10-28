@@ -48,7 +48,7 @@ class DatabaseHandler:
 
 
     ###################################################################################
-    def getListOfPlayedGames(self)->Slot:
+    def getListOfGames(self, played = 1)->Slot:
         games = []
         if self.conn.is_connected():            
             query = "SELECT slot.start AS start, slot.end AS end, slot.location_id AS location_id, location.name AS location_name, location.description, game.completed, team1.name AS team1_name, team2.name AS team2_name, result.team1_score, result.team2_score \
@@ -58,15 +58,14 @@ class DatabaseHandler:
                         INNER JOIN matchup ON game.matchup_id = matchup.matchup_id \
                         INNER JOIN team AS team1 ON matchup.team1_id = team1.team_id \
                         INNER JOIN team AS team2 ON matchup.team2_id = team2.team_id \
-                        INNER JOIN result ON matchup.result_id = result.result_id\
-                        ORDER BY slot.location_id"
-
-            #query = "SELECT start, end, locationId FROM slot WHERE start > %s"
-           # args = (timeThreshold, )           
+                        INNER JOIN result ON matchup.result_id = result.result_id \
+                        WHERE game.completed = %s \
+                        ORDER BY location_id" 
+            args = (played, ) 
 
             try:                
                 cursor = self.conn.cursor(dictionary=True)
-                cursor.execute(query)
+                cursor.execute(query, args)
                 row = cursor.fetchone() 
                 while row is not None:
                     print(row)
@@ -119,22 +118,27 @@ class DatabaseHandler:
 
 
 #######################################################################################
-    def insertSlot(self, slot: Slot):
-        query = "INSERT INTO slot(start ,end ,locationId) " \
+    def insertSlot(self, slot: Slot, debug = 0):
+        query = "INSERT INTO slot(start ,end ,location_id) " \
                     "VALUES(%s,%s,%s)"
         args = (slot.start, slot.end, slot.locationId)
  
         try: 
             cursor = self.conn.cursor()
-          #  cursor.execute(query, args)
+            cursor.execute(query, args)
  
             if cursor.lastrowid:
                 print('last insert id', cursor.lastrowid)
             else:
                 print('last insert id not found')
- 
-            self.conn.commit()
+            if debug == 0:            
+                self.conn.commit()
+            else:
+                print("Rollback")
+                self.conn.rollback()
+
         except Error as error:
+            self.conn.rollback()
             print(error)
  
         finally:
