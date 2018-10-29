@@ -3,11 +3,14 @@ from TournamentDescriptionClasses import Game, Team, Slot, Result, MatchUp
 
 class DataAPI(object):
     """ DataAPI provides access to the data source where schedule information is stored  """
+
     def __init__(self):
+        """ get DataHandler and initiate connection with data source"""
         self.databaseHandler = DatabaseHandler()
         self.databaseHandler.connect()
 
-    def __del__(self):        
+    def __del__(self): 
+        """ disconnect from data source"""
         self.databaseHandler.disconnect()
 
     
