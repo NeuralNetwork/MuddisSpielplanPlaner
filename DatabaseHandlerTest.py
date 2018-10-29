@@ -40,7 +40,7 @@ class TestConnectionHandling(unittest.TestCase):
         start = time.mktime( startTime )
         end = start + (30*60);
         slot = Slot(start, end, 2)
-        self.instance.insertSlot(slot,1)
+        self.instance.insertSlot(slot,1) #insertSlot in Debug mode
 
     def test_getListOfGames(self):
         print("testing gettingListOfPlayedGames")
