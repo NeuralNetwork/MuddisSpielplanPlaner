@@ -5,6 +5,10 @@ class DataAPI(object):
     """ DataAPI provides access to the data source where schedule information is stored  """
     def __init__(self):
         self.databaseHandler = DatabaseHandler()
+        self.databaseHandler.connect()
+
+    def __del__(self):        
+        self.databaseHandler.disconnect()
 
     
     def getAllTeams(self)->Team:
