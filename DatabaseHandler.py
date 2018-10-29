@@ -23,7 +23,7 @@ class DatabaseHandler:
         slots = []
         if self.conn.is_connected():            
 
-            query = "SELECT start, end, location_id FROM slot WHERE start > %s"
+            query = "SELECT slot_start AS start, slot_end AS end, location_id FROM slot WHERE slot_start > %s"
             args = (timeThreshold, )           
 
             try:                
@@ -51,11 +51,11 @@ class DatabaseHandler:
     def getListOfGames(self, played = 1)->Slot:
         games = []
         if self.conn.is_connected():     
-            query =     "SELECT slot.start AS start, slot.end AS end, slot.location_id AS location_id, \
-                            location.name AS location_name, location.description, \
+            query =     "SELECT slot.slot_start AS start, slot.slot_end AS end, slot.location_id AS location_id, \
+                            location.location_name AS location_name, location.location_description AS location_description, \
                             team1.team_name AS team1_name, team2.team_name AS team2_name, team1.team_seed AS team1_seed, team2.team_seed AS team2_seed, \
-                            result.team1_score, result.team2_score, \
-                            game.completed \
+                            result.result_team1Score, result.result_team2Score, \
+                            game.game_completed \
                         FROM slot  \
                         INNER JOIN location ON location.location_id = slot.location_id \
                         INNER JOIN game ON game.slot_id = slot.slot_id \
@@ -63,7 +63,7 @@ class DatabaseHandler:
                         INNER JOIN team AS team1 ON matchup.team1_id = team1.team_id \
                         INNER JOIN team AS team2 ON matchup.team2_id = team2.team_id \
                         INNER JOIN result ON matchup.result_id = result.result_id \
-                        WHERE game.completed = %s \
+                        WHERE game.game_completed = %s \
                         ORDER BY location_id" 
             args = (played, ) 
 
@@ -75,7 +75,7 @@ class DatabaseHandler:
                     print(row)
                     matchup = MatchUp(row["team1_name"],row["team2_name"])
                     slot = Slot(row["start"],row["end"],row["location_id"])
-                    result = Result(row["team1_score"], row["team2_score"])
+                    result = Result(row["result_team1Score"], row["result_team2Score"])
                     game = Game(matchup,result,slot)
                     games.append(game)
                     row = cursor.fetchone()              
@@ -120,7 +120,7 @@ class DatabaseHandler:
 
 #######################################################################################
     def insertSlot(self, slot: Slot, debug = 0):
-        query = "INSERT INTO slot(start ,end ,location_id) " \
+        query = "INSERT INTO slot(slot_start ,slot_end ,location_id) " \
                     "VALUES(%s,%s,%s)"
         args = (slot.start, slot.end, slot.locationId)
  
