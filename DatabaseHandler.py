@@ -53,7 +53,7 @@ class DatabaseHandler:
         if self.conn.is_connected():     
             query =     "SELECT slot.slot_start AS start, slot.slot_end AS end, slot.location_id AS location_id, \
                             location.location_name AS location_name, location.location_description AS location_description, \
-                            team1.team_name AS team1_name, team2.team_name AS team2_name, team1.team_seed AS team1_seed, team2.team_seed AS team2_seed, \
+                            team1.team_name AS team1_name, team2.team_name AS team2_name, \
                             result.result_team1Score, result.result_team2Score, \
                             game.game_completed \
                         FROM slot  \
