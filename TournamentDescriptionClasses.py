@@ -59,9 +59,11 @@ class Game:
 class Team:
     name = ""
     acronym = ""
+    seed = -1
     teamId = -1
 
-    def __init__(self, name: str, acronym: str, teamId: int ):
+    def __init__(self, name: str, acronym: str, seed:int, teamId: int ):
         self.name = name
         self.acronym = acronym
         self.teamId = teamId
+        self.seed = seed

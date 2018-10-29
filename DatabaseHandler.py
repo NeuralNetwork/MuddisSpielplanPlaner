@@ -50,8 +50,12 @@ class DatabaseHandler:
     ###################################################################################
     def getListOfGames(self, played = 1)->Slot:
         games = []
-        if self.conn.is_connected():            
-            query = "SELECT slot.start AS start, slot.end AS end, slot.location_id AS location_id, location.name AS location_name, location.description, game.completed, team1.name AS team1_name, team2.name AS team2_name, result.team1_score, result.team2_score \
+        if self.conn.is_connected():     
+            query =     "SELECT slot.start AS start, slot.end AS end, slot.location_id AS location_id, \
+                            location.name AS location_name, location.description, \
+                            team1.team_name AS team1_name, team2.team_name AS team2_name, team1.team_seed AS team1_seed, team2.team_seed AS team2_seed, \
+                            result.team1_score, result.team2_score, \
+                            game.completed \
                         FROM slot  \
                         INNER JOIN location ON location.location_id = slot.location_id \
                         INNER JOIN game ON game.slot_id = slot.slot_id \
@@ -74,9 +78,6 @@ class DatabaseHandler:
                     result = Result(row["team1_score"], row["team2_score"])
                     game = Game(matchup,result,slot)
                     games.append(game)
-                    #print(row["team1_name"])
-                    #slot = Slot(row["start"], row["end"], row["locationId"])
-                    #slots.append(slot)
                     row = cursor.fetchone()              
  
             except Error as e:
@@ -95,7 +96,7 @@ class DatabaseHandler:
     def getListOfAllTeams(self)->Team:
         teams = []
         if self.conn.is_connected():             
-            query = "SELECT team_id, name, acronym FROM team"   
+            query = "SELECT team_id, team_name, team_acronym, team_seed FROM team"   
 
             try:                
                 cursor = self.conn.cursor(dictionary=True)                
@@ -103,7 +104,7 @@ class DatabaseHandler:
                 row = cursor.fetchone() 
                 while row is not None:
                     print(row)
-                    team =Team (row["name"], row["acronym"], row["team_id"])
+                    team =Team (row["team_name"], row["team_acronym"], row["team_seed"], row["team_id"])
                     teams.append(team)
                     row = cursor.fetchone()              
  
