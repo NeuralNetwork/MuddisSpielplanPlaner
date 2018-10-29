@@ -1,4 +1,4 @@
-import DatabaseHandler
+from DatabaseHandler import DatabaseHandler
 from TournamentDescriptionClasses import Game, Team, Slot, Result, MatchUp
 
 class DataAPI(object):
@@ -11,20 +11,20 @@ class DataAPI(object):
 
     def __del__(self): 
         """ disconnect from data source"""
-        self.databaseHandler.disconnect()
+        del self.databaseHandler
 
     
-    def getAllTeams(self)->Team:
-        """" getAllTeams  gets all Teams stored in data source
+    def getListOfAllTeams(self)->Team:
+        """" getListOfAllTeams  gets all Teams stored in data source
 
         Returns
         -------
         list
             a list of all Teams
         """
-        return self.databaseHandler.getListOfAllTeams(self)
+        return self.databaseHandler.getListOfAllTeams()
 
-    def getListOfUpcomingSlots(self, timeThreshold=None)->Slot:
+    def getListOfUpcomingSlots(self, timeThreshold = None)->Slot:
         """" getListOfUpcomingSlots returns a list of all slots beeing later than timeThreshhold
         
         If the argument `timeThreshold` isn't passed in, the default time threshold is used.
@@ -40,7 +40,7 @@ class DataAPI(object):
         list
             a list of Slots taking place after time threshold
         """
-        return self.databaseHandler.getListOfUpcomingSlots(self, timeThreashold)
+        return self.databaseHandler.getListOfUpcomingSlots(timeThreshold)
 
     def getListOfGames(self, played = 1)->Slot:
         """ getListOfGame gets a list of games stored in data source
@@ -58,4 +58,4 @@ class DataAPI(object):
         list
             a list of games either played or not played yet
         """
-        return self.databaseHandler.getListOfGames(self, played)
+        return self.databaseHandler.getListOfGames(played)
