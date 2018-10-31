@@ -20,13 +20,14 @@ struct GameInt {
 class RankingGenerator {
 public:
   std::vector<int> generateRanking(const std::vector<int> &currentRanking,
-                                           const std::vector<GameInt> &games,
-                                           const bool debug = false);
+                                   const std::vector<GameInt> &games,
+                                   const bool debug = false);
+
 private:
   double calculateTotalError(const std::vector<int> &currentRanking, const std::vector<GameInt> &games);
 
   static const int m_maxTeams = 30;
   const std::array<int, m_maxTeams> m_rankDeltaToResultDelta = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
-                                                                       10, 11, 12, 13, 13, 13, 13, 13, 13, 13,
-                                                                       13, 13, 13, 13, 13, 13, 13, 13, 13, 13};
+                                                                10, 11, 12, 13, 13, 13, 13, 13, 13, 13,
+                                                                13, 13, 13, 13, 13, 13, 13, 13, 13, 13};
 };
