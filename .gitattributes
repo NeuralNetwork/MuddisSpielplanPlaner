@@ -1,2 +1,8 @@
 #handle line endings uniformly across systems
 * text=auto
+
+*.c eol=lf
+*.cpp eol=lf
+*.h eol=lf
+*.py eol=lf
+*.i eol=lf
