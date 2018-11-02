@@ -39,7 +39,7 @@ class TestConnectionHandling(unittest.TestCase):
         startTime = (2019, 1, 15, 9, 10, 0, 0, 0, 0) #15.01.2019 9:00:00
         start = time.mktime( startTime )
         end = start + (30*60);
-        slot = Slot(start, end, 2)
+        slot = Slot(start, end, 2, 0, 2) # slot_id will be ignored (autoincrement primary)
         self.instance.insertSlot(slot,1) #insertSlot in Debug mode
 
     def test_getListOfGames(self):

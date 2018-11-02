@@ -5,12 +5,16 @@ class Slot:
     """
     start = 0
     end = 0
+    round = -1
     locationId = -1
+    slotId = -1
 
-    def __init__(self, start: int, end: int, locationId: int):
+    def __init__(self, start: int, end: int, locationId: int, slotId: int, round: int):
         self.start = start
         self.end = end
         self.locationId = locationId
+        self.slotId=slotId
+        self.round = round
 
     def distance(self, other) -> int:
         """ time between two slots
@@ -26,28 +30,34 @@ class MatchUp:
     """
     first = ""
     second = ""
+    matchupId = -1
 
-    def __init__(self, first: str, second: str):
+    def __init__(self, first, second, matchupId: int):
         self.first = first
         self.second = second
+        self.matchupId = matchupId
 
 class Result:
     first = -1
     second = -1
+    resultId = -1
 
-    def __init__(self, resultA: int, resultB: int):
+    def __init__(self, resultA: int, resultB: int, resultId: int):
         self.first = resultA
         self.second = resultB
+        self.resultId = resultId
 
 class Game:
     matchup = None
     result = None
     slot = None
+    gameId = -1
 
-    def __init__(self, matchup=None, result=None, slot=None):
+    def __init__(self, matchup=None, result=None, slot=None, gameId=None):
         self.matchup = matchup
         self.result = result
         self.slot = slot
+        self.gameId = gameId
 
     def distance(self, other):
         """ time between two slots
@@ -59,11 +69,9 @@ class Game:
 class Team:
     name = ""
     acronym = ""
-    seed = -1
     teamId = -1
 
-    def __init__(self, name: str, acronym: str, seed:int, teamId: int ):
+    def __init__(self, name: str, acronym: str, teamId: int ):
         self.name = name
         self.acronym = acronym
         self.teamId = teamId
-        self.seed = seed
