@@ -23,7 +23,7 @@ class DatabaseHandler:
         slots = []
         if self.conn.is_connected():            
 
-            query = "SELECT slot_start AS start, slot_end AS end, location_id FROM slot WHERE slot_start > %s"
+            query = "SELECT slot_start AS start, slot_end AS end, location_id, slot_id, slot_round FROM slot WHERE slot_start > %s"
             args = (timeThreshold, )           
 
             try:                
@@ -32,7 +32,7 @@ class DatabaseHandler:
                 row = cursor.fetchone() 
                 while row is not None:
                     print(row)
-                    slot = Slot(row["start"], row["end"], row["location_id"])
+                    slot = Slot(row["start"], row["end"], row["location_id"], row["slot_id"], row["slot_round"])
                     slots.append(slot)
                     row = cursor.fetchone()              
  
@@ -51,11 +51,13 @@ class DatabaseHandler:
     def getListOfGames(self, played = 1)->Slot:
         games = []
         if self.conn.is_connected():     
-            query =     "SELECT slot.slot_start AS start, slot.slot_end AS end, slot.location_id AS location_id, \
-                            location.location_name AS location_name, location.location_description AS location_description, \
-                            team1.team_name AS team1_name, team2.team_name AS team2_name, \
-                            result.result_team1Score, result.result_team2Score, \
-                            game.game_completed \
+            query =     "SELECT slot.slot_start AS start, slot.slot_end AS end, slot.slot_id AS slot_id, slot.slot_round AS slot_round,\
+                            location.location_name AS location_name, location.location_description AS location_description, location.location_id AS location_id, \
+                            team1.team_name AS team1_name, team1.team_id AS team1_id, team1.team_acronym AS team1_acronym, \
+                            team2.team_name AS team2_name, team2.team_id AS team2_id, team2.team_acronym AS team2_acronym, \
+                            result.result_team1Score AS team1_score, result.result_team2Score AS team2_score, result.result_id AS result_id,\
+                            matchup.matchup_id AS matchup_id, \
+                            game.game_completed AS game_completed, game.game_id AS game_id \
                         FROM slot  \
                         INNER JOIN location ON location.location_id = slot.location_id \
                         INNER JOIN game ON game.slot_id = slot.slot_id \
@@ -63,7 +65,7 @@ class DatabaseHandler:
                         INNER JOIN team AS team1 ON matchup.team1_id = team1.team_id \
                         INNER JOIN team AS team2 ON matchup.team2_id = team2.team_id \
                         INNER JOIN result ON matchup.result_id = result.result_id \
-                        WHERE game.game_completed = %s \
+                        WHERE game_completed = %s \
                         ORDER BY location_id" 
             args = (played, ) 
 
@@ -73,10 +75,12 @@ class DatabaseHandler:
                 row = cursor.fetchone() 
                 while row is not None:
                     print(row)
-                    matchup = MatchUp(row["team1_name"],row["team2_name"])
-                    slot = Slot(row["start"],row["end"],row["location_id"])
-                    result = Result(row["result_team1Score"], row["result_team2Score"])
-                    game = Game(matchup,result,slot)
+                    team1 = Team(row["team1_name"],row["team1_acronym"],row["team1_id"])
+                    team2 = Team(row["team2_name"],row["team2_acronym"],row["team2_id"])
+                    matchup = MatchUp(team1,team2,row["matchup_id"])
+                    slot = Slot(row["start"],row["end"],row["location_id"], row["slot_id"],row["slot_round"])
+                    result = Result(row["team1_score"], row["team2_score"],row["result_id"])
+                    game = Game(matchup,result,slot,row["game_id"])
                     games.append(game)
                     row = cursor.fetchone()              
  
@@ -96,7 +100,7 @@ class DatabaseHandler:
     def getListOfAllTeams(self)->Team:
         teams = []
         if self.conn.is_connected():             
-            query = "SELECT team_id, team_name, team_acronym, team_seed FROM team"   
+            query = "SELECT team_id, team_name, team_acronym FROM team"   
 
             try:                
                 cursor = self.conn.cursor(dictionary=True)                
@@ -104,7 +108,7 @@ class DatabaseHandler:
                 row = cursor.fetchone() 
                 while row is not None:
                     print(row)
-                    team =Team (row["team_name"], row["team_acronym"], row["team_seed"], row["team_id"])
+                    team =Team (row["team_name"], row["team_acronym"], row["team_id"])
                     teams.append(team)
                     row = cursor.fetchone()              
  
@@ -120,9 +124,9 @@ class DatabaseHandler:
 
 #######################################################################################
     def insertSlot(self, slot: Slot, debug = 0):
-        query = "INSERT INTO slot(slot_start ,slot_end ,location_id) " \
-                    "VALUES(%s,%s,%s)"
-        args = (slot.start, slot.end, slot.locationId)
+        query = "INSERT INTO slot(slot_start ,slot_end ,location_id, slot_round) " \
+                    "VALUES(%s,%s,%s,%s)"
+        args = (slot.start, slot.end, slot.locationId, slot.round)
  
         try: 
             cursor = self.conn.cursor()
