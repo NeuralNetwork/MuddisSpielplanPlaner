@@ -42,7 +42,7 @@ class DataAPI(object):
         """
         return self.databaseHandler.getListOfUpcomingSlots(timeThreshold)
 
-    def getListOfGames(self, played = 1)->Slot:
+    def getListOfGames(self, played = GameState.COMPLETED)->Slot:
         """ getListOfGame gets a list of games stored in data source
         
         If the argument `played` isn't passed in, the default played status is used.
@@ -50,8 +50,9 @@ class DataAPI(object):
         Parameters
         ---------- 
         played : int, optional            
-            0 if Game is not yet played
-            1 if Game is already played
+            NOT_YET_STARTED if Game is not yet played
+            COMPLETED if Game is already played
+            RUNNING if Game is currently running.
 
         Returns
         -------
@@ -59,3 +60,8 @@ class DataAPI(object):
             a list of games either played or not played yet
         """
         return self.databaseHandler.getListOfGames(played)
+
+class GameState:
+    NOT_YET_STARTED = 0
+    COMPLETED = 1
+    RUNNING = 2

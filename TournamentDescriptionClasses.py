@@ -28,11 +28,11 @@ class Slot:
 class MatchUp:
     """ matchup between two teams
     """
-    first = ""
-    second = ""
+    first = None
+    second = None
     matchupId = -1
 
-    def __init__(self, first, second, matchupId: int):
+    def __init__(self, first: Team, second: Team, matchupId: int):
         self.first = first
         self.second = second
         self.matchupId = matchupId
@@ -75,3 +75,4 @@ class Team:
         self.name = name
         self.acronym = acronym
         self.teamId = teamId
+
