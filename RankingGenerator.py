@@ -28,7 +28,7 @@ rankDeltaToResultDelta = [
 ]
 
 
-def swap(list: List[str], indexA: int, indexB: int):
+def _swap(list: List[str], indexA: int, indexB: int):
     """ swap two list members
     """
     temp = list[indexA]
@@ -36,7 +36,7 @@ def swap(list: List[str], indexA: int, indexB: int):
     list[indexB] = temp
 
 
-def calculateTotalError(currentRanking: List[str], games: List[Game]) -> float:
+def _calculateTotalError(currentRanking: List[str], games: List[Game]) -> float:
     """ Error between obtained results and results expected from ranking
     Takes into account all obtained results so far
     Converts given Ranking into results using conversion table
@@ -75,27 +75,27 @@ def generateNewRanking(currentRanking: List[str], games: List[Game], debug=False
         print("Original ranking:")
         for item in currentRanking:
             print(item)
-        print("initial Erorr: loss=", calculateTotalError(currentRanking, games))
+        print("initial Erorr: loss=", _calculateTotalError(currentRanking, games))
     # cover large range of possible random permutations:
     for i in range(0,150000):
         # calculate total Error made by current ranking
-        currentLoss = calculateTotalError(newRanking, games)
+        currentLoss = _calculateTotalError(newRanking, games)
         losses.append(currentLoss)
         # randomly permute the ranking
         indexA = random.randint(0, len(currentRanking)-1)
         indexB = indexA
         while indexA == indexB:
             indexB = random.randint(0, len(currentRanking)-1)
-        swap(newRanking, indexA, indexB)
+        _swap(newRanking, indexA, indexB)
         # calculate total error of new ranking
-        newLoss = calculateTotalError(newRanking, games)
+        newLoss = _calculateTotalError(newRanking, games)
         # if better: save optimal solution
         if newLoss < minimalLoss: 
             minimalLoss = newLoss
             minimalLossRanking = newRanking[:]
         # possibly use worse ranking (to avoid local minima)
         if newLoss > currentLoss and random.uniform(0.0, 1.0) > pAcceptWorse: # do not accept worse value
-            swap(newRanking, indexA, indexB)
+            _swap(newRanking, indexA, indexB)
         pAcceptWorse *= decay
     if debug: # debug messaging
         print("Optimal Ranking:")
