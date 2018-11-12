@@ -114,7 +114,7 @@ def generateNewRankingPython(currentRanking: List[str], games: List[Game], debug
 def generateNewRankingCpp(currentRanking: List[str], games: List[Game], debug=False) -> List[str]:
     teamNameToInt = dict()
     for number, teamName in enumerate(currentRanking, 0):
-        teamNameToInt[teamName] = number
+        teamNameToInt[teamName] = int(number)
 
     currentRankingInt = list()
     for teamName in currentRanking:
@@ -133,7 +133,7 @@ def generateNewRankingCpp(currentRanking: List[str], games: List[Game], debug=Fa
 
     newRanking = list()
     for number in rankingInt:
-        for key, value in teamNameToInt:
+        for key, value in teamNameToInt.items():
             if value == number:
                 newRanking.append(key)
                 break
