@@ -1,5 +1,9 @@
 from DatabaseHandler import DatabaseHandler
 from TournamentDescriptionClasses import Game, Team, Slot, Result, MatchUp
+class GameState:
+    NOT_YET_STARTED = 0
+    COMPLETED = 1
+    RUNNING = 2
 
 class DataAPI(object):
     """ DataAPI provides access to the data source where schedule information is stored  """
@@ -42,14 +46,14 @@ class DataAPI(object):
         """
         return self.databaseHandler.getListOfUpcomingSlots(timeThreshold)
 
-    def getListOfGames(self, played = GameState.COMPLETED)->Slot:
+    def getListOfGames(self, gameState = GameState.COMPLETED, location_id:int = -1)->Game:
         """ getListOfGame gets a list of games stored in data source
         
-        If the argument `played` isn't passed in, the default played status is used.
+        If the argument `gameState` isn't passed in, the default played status is used.
 
         Parameters
         ---------- 
-        played : int, optional            
+        gameState : int, optional            
             NOT_YET_STARTED if Game is not yet played
             COMPLETED if Game is already played
             RUNNING if Game is currently running.
@@ -59,9 +63,8 @@ class DataAPI(object):
         list
             a list of games either played or not played yet
         """
-        return self.databaseHandler.getListOfGames(played)
+        return self.databaseHandler.getListOfGames(gameState, location_id )
 
-class GameState:
-    NOT_YET_STARTED = 0
-    COMPLETED = 1
-    RUNNING = 2
+
+  
+

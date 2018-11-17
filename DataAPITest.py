@@ -36,6 +36,13 @@ class TestConnectionHandling(unittest.TestCase):
     def test_getListOfGames(self):
         print("testing gettingListOfPlayedGames")
         self.instance.getListOfGames()
+        print("#####################################################################")
+
+    def test_getGames(self):
+        print("testing running game")
+        self.instance.getListOfGames(2, 1)
+
+
 
     @classmethod    
     def tearDownClass(self):

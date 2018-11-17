@@ -24,12 +24,22 @@ class Slot:
         else:
             return self.start - other.end
 
+class Team:
+    name = ""
+    acronym = ""
+    teamId = -1
+
+    def __init__(self, name: str, acronym: str, teamId: int ):
+        self.name = name
+        self.acronym = acronym
+        self.teamId = teamId
 
 class MatchUp:
     """ matchup between two teams
     """
     first = None
     second = None
+
     matchupId = -1
 
     def __init__(self, first: Team, second: Team, matchupId: int):
@@ -40,11 +50,16 @@ class MatchUp:
 class Result:
     first = -1
     second = -1
+    firstTo = -1
+    secondTo = -1
     resultId = -1
 
-    def __init__(self, resultA: int, resultB: int, resultId: int):
+
+    def __init__(self,resultId: int, resultA: int , resultB: int ,  timeoutsA:int = 0, timeoutsB:int= 0, ):
         self.first = resultA
         self.second = resultB
+        self.firstTo = timeoutsA
+        self.secondTo = timeoutsB
         self.resultId = resultId
 
 class Game:
@@ -66,13 +81,5 @@ class Game:
             return other.slot.start - self.slot.end
         else:
             return self.slot.start - other.slot.end
-class Team:
-    name = ""
-    acronym = ""
-    teamId = -1
 
-    def __init__(self, name: str, acronym: str, teamId: int ):
-        self.name = name
-        self.acronym = acronym
-        self.teamId = teamId
 

@@ -31,7 +31,7 @@ class DatabaseHandler:
                 cursor.execute(query, args)
                 row = cursor.fetchone() 
                 while row is not None:
-                    print(row)
+                    #print(row)
                     slot = Slot(row["start"], row["end"], row["location_id"], row["slot_id"], row["slot_round"])
                     slots.append(slot)
                     row = cursor.fetchone()              
@@ -48,38 +48,41 @@ class DatabaseHandler:
 
 
     ###################################################################################
-    def getListOfGames(self, played = 1)->Slot:
+    def getListOfGames(self, gameState = 1, location_id:int  =-1)->Game:
         games = []
         if self.conn.is_connected():     
             query =     "SELECT slot.slot_start AS start, slot.slot_end AS end, slot.slot_id AS slot_id, slot.slot_round AS slot_round,\
                             location.location_name AS location_name, location.location_description AS location_description, location.location_id AS location_id, \
                             team1.team_name AS team1_name, team1.team_id AS team1_id, team1.team_acronym AS team1_acronym, \
                             team2.team_name AS team2_name, team2.team_id AS team2_id, team2.team_acronym AS team2_acronym, \
-                            result.result_team1Score AS team1_score, result.result_team2Score AS team2_score, result.result_id AS result_id,\
-                            matchup.matchup_id AS matchup_id, \
+                            matchup.matchup_id AS matchup_id, matchup_team1_score AS team1_score, matchup_team2_score AS team2_score, matchup_team1_timeouts AS team1_timeout, matchup_team2_timeouts AS team2_timeout, \
                             game.game_completed AS game_completed, game.game_id AS game_id \
                         FROM slot  \
                         INNER JOIN location ON location.location_id = slot.location_id \
                         INNER JOIN game ON game.slot_id = slot.slot_id \
                         INNER JOIN matchup ON game.matchup_id = matchup.matchup_id \
-                        INNER JOIN team AS team1 ON matchup.team1_id = team1.team_id \
-                        INNER JOIN team AS team2 ON matchup.team2_id = team2.team_id \
-                        INNER JOIN result ON matchup.result_id = result.result_id \
-                        WHERE game_completed = %s \
-                        ORDER BY location_id" 
-            args = (played, ) 
+                        INNER JOIN team AS team1 ON matchup_team1_id = team1.team_id \
+                        INNER JOIN team AS team2 ON matchup_team2_id = team2.team_id \
+                        WHERE game_completed = %s "
+            if(location_id >= 0):
+                query += "AND location.location_id = %s "   
+            if(location_id < 0):
+                query += "ORDER BY location.location_id "
+                args = (gameState, ) 
+            else:
+                args = (gameState, location_id) 
 
             try:                
                 cursor = self.conn.cursor(dictionary=True)
                 cursor.execute(query, args)
                 row = cursor.fetchone() 
                 while row is not None:
-                    print(row)
+                    #print(row)
                     team1 = Team(row["team1_name"],row["team1_acronym"],row["team1_id"])
                     team2 = Team(row["team2_name"],row["team2_acronym"],row["team2_id"])
                     matchup = MatchUp(team1,team2,row["matchup_id"])
                     slot = Slot(row["start"],row["end"],row["location_id"], row["slot_id"],row["slot_round"])
-                    result = Result(row["team1_score"], row["team2_score"],row["result_id"])
+                    result = Result(row["matchup_id"],row["team1_score"], row["team2_score"],row["team1_timeout"],row["team2_timeout"])
                     game = Game(matchup,result,slot,row["game_id"])
                     games.append(game)
                     row = cursor.fetchone()              
@@ -94,6 +97,7 @@ class DatabaseHandler:
 
         return  games
 
+  
 
 
 ######################################################################################
@@ -107,7 +111,7 @@ class DatabaseHandler:
                 cursor.execute(query)
                 row = cursor.fetchone() 
                 while row is not None:
-                    print(row)
+                    #print(row)
                     team =Team (row["team_name"], row["team_acronym"], row["team_id"])
                     teams.append(team)
                     row = cursor.fetchone()              
