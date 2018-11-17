@@ -6,15 +6,16 @@
 
 /** struct that is used internally to represent a Game. */
 struct GameInt {
+  GameInt() = default;
   GameInt(const int teamA, const int teamB, const int resultA, const int resultB) :
           teamA(teamA),
           teamB(teamB),
           resultA(resultA),
           resultB(resultB) {};
-  int teamA;
-  int teamB;
-  int resultA;
-  int resultB;
+  int teamA = -1;
+  int teamB = -1;
+  int resultA = -1;
+  int resultB = -1;
 };
 
 class RankingGenerator {
