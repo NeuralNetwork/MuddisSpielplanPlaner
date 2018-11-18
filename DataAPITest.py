@@ -67,6 +67,12 @@ class TestConnectionHandling(unittest.TestCase):
         for location in locations:
             print(location.toString())
 
+    def test_getScoreboardTexts(self):
+        print("testing getting ScoreboardTexts")
+        getScoreboardTexts = self.instance.getScoreboardTexts()
+        for getScoreboardText in getScoreboardTexts:
+            print(getScoreboardText.toString())
+
 
     def test_insertGame(self):
         print("########## testing inserting next games ############")

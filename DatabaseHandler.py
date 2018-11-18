@@ -3,6 +3,7 @@ from configparser import ConfigParser
 import mysql.connector 
 from mysql.connector import MySQLConnection,Error
 from TournamentDescriptionClasses import Slot, Team, MatchUp, Game, Result, Division, Location
+from scoreboardDescriptionClasses import ScoreboardText
 import time
 
 class DatabaseHandler:    
@@ -22,7 +23,7 @@ class DatabaseHandler:
             timeThreshold =  int(time.time())
         if divisionId == None:
             divisionId = self.__getSwissDrawDivision().divisionId
-            print(timeThreshold)
+           # print(timeThreshold)
         slots = []
         if self.conn.is_connected():            
             query = "SELECT slot_start AS start, slot_end AS end, location_id, slot_id, slot_round FROM slot "                        
@@ -282,7 +283,45 @@ class DatabaseHandler:
  
         finally:
             cursor.close()
+            
+    def getScoreboardTexts(self, location:Location = None, timeThreshold = None)->ScoreboardText:
+        scoreboardTexts = []
+        if timeThreshold == None:          
+            timeThreshold =  int(time.time())
+        if location != None:
+            locationId = location.locationId
+        else:
+            locationId = None;
 
+        if self.conn.is_connected():             
+            query = "SELECT scoreboardtext_id, location_id, scoreboardtext_text, scoreboardtext_start, scoreboardtext_end, scoreboardtext_color" \
+                " FROM scoreboardtext" \
+                " WHERE scoreboardtext_end > %s"
+            args = (timeThreshold,)
+            if ((locationId is not None) and (locationId > 0)):
+                 query += " AND location_id = %s"
+                 args = (timeThreshold, locationId)
+
+            try:                
+                cursor = self.conn.cursor(dictionary=True)                
+                cursor.execute(query, args)
+                row = cursor.fetchone() 
+                while row is not None:
+                    #print(row)
+                    scoreboardText = ScoreboardText (row["scoreboardtext_id"], row["location_id"], row["scoreboardtext_text"], row["scoreboardtext_start"], row["scoreboardtext_end"], row["scoreboardtext_color"])          
+                    scoreboardTexts.append(scoreboardText)
+                    row = cursor.fetchone()        
+            except Error as e:
+                print(e)
+ 
+            finally:
+                cursor.close()      
+        else:
+            raise NoDatabaseConnection()
+
+        return scoreboardTexts
+        return None
+   
 
     def connect(self):
         """ Connect to MySQL database """

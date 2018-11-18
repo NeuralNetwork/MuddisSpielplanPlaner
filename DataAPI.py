@@ -1,5 +1,6 @@
 from DatabaseHandler import DatabaseHandler
 from TournamentDescriptionClasses import Game, Team, Slot, Result, MatchUp, Division, Location
+from scoreboardDescriptionClasses import ScoreboardText
 class GameState:
     NOT_YET_STARTED = 0
     COMPLETED = 1
@@ -7,7 +8,6 @@ class GameState:
 
 class DataAPI(object):
     """ DataAPI provides access to the data source where schedule information is stored  """
-    SWISS_DRAW_DIVISION = -1
 
     def __init__(self):
         """ get DataHandler and initiate connection with data source"""
@@ -132,5 +132,8 @@ class DataAPI(object):
             False if not
         """        
         return self.databaseHandler.insertNextGame(game,debug)
+
+    def getScoreboardTexts(self, location:Location = None, timeThreshold = None)->ScoreboardText:
+        return  self.databaseHandler.getScoreboardTexts( location , timeThreshold )
     
 
