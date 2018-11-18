@@ -1,4 +1,4 @@
-from TournamentDescriptionClasses import Game
+from TournamentDescriptionClasses import Game, MatchUp
 import sys
 from typing import List
 
@@ -130,7 +130,7 @@ class SwissGameScheduler:
         return gainSum
 
 
-    def maximizeGain(self, previousMatches: List[Game], futureSlots: List[Game], futureMatchUps: List[Game]) -> None:
+    def maximizeGain(self, previousMatches: List[Game], futureSlots: List[Game], futureMatchUps: List[Game]) -> List[Game]:
         """ calculate optimal schedule for given futureMatchUps in given futureSlots
         maximize 'Gain' measure for distribution of matchups onto slots
         """
@@ -166,6 +166,12 @@ class SwissGameScheduler:
             secondDelta = self.getTimeDelta(previousMatches, futureMatchUps[matchupIndexList[i]].matchup.second, futureSlots[i])
             print("minutes between games for {}: {}".format(futureMatchUps[matchupIndexList[i]].matchup.first, firstDelta))
             print("minutes between games for {}: {}".format(futureMatchUps[matchupIndexList[i]].matchup.second, secondDelta))
+
+        # return final schedule
+        resultGames = futureSlots[:]
+        for game, matchupIndex in zip(resultGames, matchupIndexList):
+            game.matchup = futureMatchUps[matchupIndex].matchup
+        return resultGames
 
 
     def printTime(self, minutes: int) -> str:
