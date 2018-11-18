@@ -37,12 +37,12 @@ class Team:
 class MatchUp:
     """ matchup between two teams
     """
-    first = None
-    second = None
+    first:Team = None
+    second:Team = None
 
     matchupId = -1
 
-    def __init__(self, first: Team, second: Team, matchupId: int):
+    def __init__(self, first: Team, second: Team, matchupId: int = None):
         self.first = first
         self.second = second
         self.matchupId = matchupId
@@ -63,12 +63,12 @@ class Result:
         self.resultId = resultId
 
 class Game:
-    matchup = None
-    result = None
-    slot = None
+    matchup:MatchUp = None
+    result:Result = None
+    slot:Slot = None
     gameId = -1
 
-    def __init__(self, matchup=None, result=None, slot=None, gameId=None):
+    def __init__(self, matchup:MatchUp = None, result:Result = None, slot:Slot = None, gameId=None):
         self.matchup = matchup
         self.result = result
         self.slot = slot
@@ -82,4 +82,18 @@ class Game:
         else:
             return self.slot.start - other.slot.end
 
+
+class Division:
+    acronym = ""
+    name = ""
+    divisionId = -1
+
+    def __init__(self, divisionId, name, acronym = ""):
+        self.acronym = acronym
+        self.name = name
+        self.divisionId = divisionId
+
+    def toString(self):
+        print(str(self.divisionId) + " " + self.name + " " + self.acronym)
+        
 

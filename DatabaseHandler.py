@@ -2,7 +2,7 @@ import os
 from configparser import ConfigParser
 import mysql.connector 
 from mysql.connector import MySQLConnection,Error
-from TournamentDescriptionClasses import Slot, Team, MatchUp, Game, Result
+from TournamentDescriptionClasses import Slot, Team, MatchUp, Game, Result, Division
 import time
 
 class DatabaseHandler:    
@@ -17,21 +17,27 @@ class DatabaseHandler:
             self.disconnect()
 
     ###################################################################################
-    def getListOfUpcomingSlots(self, timeThreshold=None)->Slot:
+    def getListOfUpcomingSlots(self, timeThreshold = None, location_id:int = None)->Slot:
         if timeThreshold == None:          
             timeThreshold =  int(time.time())
+        if location_id == None:
+            location_id = self.__getSwissDrawDivision().divisionId
+
         slots = []
         if self.conn.is_connected():            
-
-            query = "SELECT slot_start AS start, slot_end AS end, location_id, slot_id, slot_round FROM slot WHERE slot_start > %s"
-            args = (timeThreshold, )           
+            query = "SELECT slot_start AS start, slot_end AS end, location_id, slot_id, slot_round FROM slot WHERE slot_start > %s"                        
+            if(location_id < 0):
+                args = (timeThreshold,)
+            else:
+               query += " AND division_id = %s"
+               args = (timeThreshold,  location_id,)            
 
             try:                
                 cursor = self.conn.cursor(dictionary=True)
                 cursor.execute(query, args)
                 row = cursor.fetchone() 
                 while row is not None:
-                    #print(row)
+                    print(row)
                     slot = Slot(row["start"], row["end"], row["location_id"], row["slot_id"], row["slot_round"])
                     slots.append(slot)
                     row = cursor.fetchone()              
@@ -48,10 +54,15 @@ class DatabaseHandler:
 
 
     ###################################################################################
-    def getListOfGames(self, gameState = 1, location_id:int  =-1)->Game:
+    def getListOfGames(self, gameState = 1, locationId:int = None, divisionId:int = None)->Game:
+        if divisionId == None:
+            divisionId = self.__getSwissDrawDivision().divisionId
+        if locationId == None:
+            locationId = -1
+
         games = []
         if self.conn.is_connected():     
-            query =     "SELECT slot.slot_start AS start, slot.slot_end AS end, slot.slot_id AS slot_id, slot.slot_round AS slot_round,\
+            query =     "SELECT slot.slot_start AS start, slot.slot_end AS end, slot.slot_id AS slot_id, slot.slot_round AS slot_round, slot.division_id,\
                             location.location_name AS location_name, location.location_description AS location_description, location.location_id AS location_id, \
                             team1.team_name AS team1_name, team1.team_id AS team1_id, team1.team_acronym AS team1_acronym, \
                             team2.team_name AS team2_name, team2.team_id AS team2_id, team2.team_acronym AS team2_acronym, \
@@ -64,20 +75,34 @@ class DatabaseHandler:
                         INNER JOIN team AS team1 ON matchup_team1_id = team1.team_id \
                         INNER JOIN team AS team2 ON matchup_team2_id = team2.team_id \
                         WHERE game_completed = %s "
-            if(location_id >= 0):
-                query += "AND location.location_id = %s "   
-            if(location_id < 0):
-                query += "ORDER BY location.location_id "
-                args = (gameState, ) 
-            else:
-                args = (gameState, location_id) 
+
+            orderBy = "start";
+            if(locationId >= 0 & divisionId >= 0):
+                query += "AND location.location_id = %s "  
+                query += "AND slot.division_id = %s " 
+                query += "ORDER BY " + orderBy                
+                args = (gameState, locationId, divisionId,) 
+            
+            elif(locationId < 0  & divisionId >= 0):
+                query += "AND slot.division_id = %s " 
+                query += "ORDER BY " + orderBy                 
+                args = (gameState, divisionId,) 
+
+            elif(locationId >= 0  & divisionId < 0):
+                query += "AND location_id = %s "             
+                query += "ORDER BY " + orderBy            
+                args = (gameState, locationId,)                
+            else:                     
+                query += "ORDER BY " + orderBy   
+                args = (gameState,) 
+
 
             try:                
                 cursor = self.conn.cursor(dictionary=True)
                 cursor.execute(query, args)
                 row = cursor.fetchone() 
                 while row is not None:
-                    #print(row)
+                    print(row)
                     team1 = Team(row["team1_name"],row["team1_acronym"],row["team1_id"])
                     team2 = Team(row["team2_name"],row["team2_acronym"],row["team2_id"])
                     matchup = MatchUp(team1,team2,row["matchup_id"])
@@ -101,14 +126,24 @@ class DatabaseHandler:
 
 
 ######################################################################################
-    def getListOfAllTeams(self)->Team:
+    def getListOfAllTeams(self, divisionId:int = None)->Team:
+        if divisionId == None:
+            divisionId = self.__getSwissDrawDivision().divisionId
+
         teams = []
         if self.conn.is_connected():             
-            query = "SELECT team_id, team_name, team_acronym FROM team"   
-
+            query = "SELECT team_id, team_name, team_acronym FROM team "    
+            if(divisionId >= 0):
+                query += "WHERE division_id = %s "                
+                args = (divisionId,) 
+            else:
+                 args = None
             try:                
-                cursor = self.conn.cursor(dictionary=True)                
-                cursor.execute(query)
+                cursor = self.conn.cursor(dictionary=True)    
+                if(args == None):
+                    cursor.execute(query)
+                else:
+                    cursor.execute(query, args)
                 row = cursor.fetchone() 
                 while row is not None:
                     #print(row)
@@ -124,6 +159,66 @@ class DatabaseHandler:
         else:
             raise NoDatabaseConnection()
         return teams
+
+
+    def __getSwissDrawDivision(self)->Division:
+        divisions = []
+        if self.conn.is_connected():             
+            query = "SELECT division_id, division_name, division_acronym FROM division WHERE division_optimized = 1 LIMIT 1"   
+
+            try:                
+                cursor = self.conn.cursor(dictionary=True)                
+                cursor.execute(query)
+                row = cursor.fetchone() 
+                division =Division (row["division_id"], row["division_name"], row["division_acronym"])          
+                
+            except Error as e:
+                print(e)
+ 
+            finally:
+                cursor.close()      
+        else:
+            raise NoDatabaseConnection()
+        division.toString()
+        return division
+
+
+
+    def insertNextGame(self, game:Game, debug:int = 0):
+        matchupQuery = "INSERT INTO matchup(matchup_team1_id ,matchup_team2_id) " \
+                    "VALUES(%s,%s)"
+        gameQuery = "INSERT INTO game(matchup_id ,slot_id) " \
+                    "VALUES(%s,%s)"      
+        try:    
+            self.conn.autocommit = False
+            cursor = self.conn.cursor()
+ 
+            matchupArgs = (game.matchup.first.teamId, game.matchup.second.teamId)        
+            cursor.execute(matchupQuery, matchupArgs)
+
+            gameArgs = (cursor.lastrowid, game.slot.slotId)
+            cursor.execute(gameQuery, gameArgs)
+
+            if cursor.lastrowid:
+                print('last insert id', cursor.lastrowid)
+            else:
+                print('last insert id not found')
+            self.conn.commit()
+            if debug == 0:            
+                self.conn.commit()
+            else:
+               print("Rollback")
+               self.conn.rollback()
+
+        except Error as error:
+            self.conn.rollback()
+            print(error)
+ 
+        finally:
+            cursor.close()
+
+        return None
+
 
 
 #######################################################################################
