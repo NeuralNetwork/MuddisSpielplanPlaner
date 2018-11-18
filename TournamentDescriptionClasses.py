@@ -47,6 +47,9 @@ class MatchUp:
         self.second = second
         self.matchupId = matchupId
 
+    def toString():
+       return (str(self.matchupId) + "; Teams: " + self.first + ":" + self.second )
+
 class Result:
     first = -1
     second = -1
@@ -61,6 +64,9 @@ class Result:
         self.firstTo = timeoutsA
         self.secondTo = timeoutsB
         self.resultId = resultId
+
+    def toString():
+       return (str(self.resultId) + "; Score: " + self.first + ":" + self.second + " Timeouts: " + self.firstTo + ":" + self.secondTo)
 
 class Game:
     matchup:MatchUp = None
@@ -81,6 +87,8 @@ class Game:
             return other.slot.start - self.slot.end
         else:
             return self.slot.start - other.slot.end
+    def toString():
+       return (str(self.gameId) + "; slot: " + self.slot.toString() + "; matchup " + self.matchup.toString()+ " result: " + self.result.toString())
 
 
 class Division:
@@ -94,6 +102,21 @@ class Division:
         self.divisionId = divisionId
 
     def toString(self):
-        print(str(self.divisionId) + " " + self.name + " " + self.acronym)
+        return (str(self.divisionId) + " " + self.name + " " + self.acronym)
+
+class Location:
+    description = ""
+    name = ""
+    color = ""
+    locationId = -1
+
+    def __init__(self, locationId, name, description = "", color =""):
+        self.description = description
+        self.name = name
+        self.color = color
+        self.locationId = locationId
+
+    def toString(self):
+        return (str(self.locationId) + ": " + self.name + " ; " + self.description+ " ; " + self.color)
         
 
