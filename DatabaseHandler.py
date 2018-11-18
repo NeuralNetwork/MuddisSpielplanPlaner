@@ -17,20 +17,28 @@ class DatabaseHandler:
             self.disconnect()
 
     ###################################################################################
-    def getListOfUpcomingSlots(self, timeThreshold = None, location_id:int = None)->Slot:
+    def getListOfUpcomingSlots(self, timeThreshold = None, divisionId:int = None, enableMinimalRound:bool = True)->Slot:
         if timeThreshold == None:          
             timeThreshold =  int(time.time())
-        if location_id == None:
-            location_id = self.__getSwissDrawDivision().divisionId
-
+        if divisionId == None:
+            divisionId = self.__getSwissDrawDivision().divisionId
+            print(timeThreshold)
         slots = []
         if self.conn.is_connected():            
-            query = "SELECT slot_start AS start, slot_end AS end, location_id, slot_id, slot_round FROM slot WHERE slot_start > %s"                        
-            if(location_id < 0):
+            query = "SELECT slot_start AS start, slot_end AS end, location_id, slot_id, slot_round FROM slot "                        
+            if(divisionId < 0 & enableMinimalRound == True):
+                query += "WHERE slot_round = ( SELECT MIN(slot_round) FROM slot WHERE slot_start > %s)" 
                 args = (timeThreshold,)
-            else:
-               query += " AND division_id = %s"
-               args = (timeThreshold,  location_id,)            
+            elif(enableMinimalRound == True):
+               query += "WHERE slot_round = ( SELECT MIN(slot_round) FROM slot WHERE slot_start > %s  AND division_id = %s)" 
+               args = (timeThreshold,  divisionId,)    
+            elif(divisionId < 0 & enableMinimalRound==False):
+               query += " WHERE slot_start > %s" 
+               args = (timeThreshold,  ) 
+            elif(enableMinimalRound==False):
+               query += " WHERE slot_start > %s  AND division_id = %s" 
+               args = (timeThreshold,  divisionId,) 
+
 
             try:                
                 cursor = self.conn.cursor(dictionary=True)
@@ -187,8 +195,9 @@ class DatabaseHandler:
     def insertNextGame(self, game:Game, debug:int = 0):
         matchupQuery = "INSERT INTO matchup(matchup_team1_id ,matchup_team2_id) " \
                     "VALUES(%s,%s)"
-        gameQuery = "INSERT INTO game(matchup_id ,slot_id) " \
-                    "VALUES(%s,%s)"      
+        gameQuery = "REPLACE INTO game(matchup_id ,slot_id) " \
+                    "VALUES(%s,%s) "       
+        
         try:    
             self.conn.autocommit = False
             cursor = self.conn.cursor()
@@ -196,14 +205,13 @@ class DatabaseHandler:
             matchupArgs = (game.matchup.first.teamId, game.matchup.second.teamId)        
             cursor.execute(matchupQuery, matchupArgs)
 
-            gameArgs = (cursor.lastrowid, game.slot.slotId)
+            gameArgs = (cursor.lastrowid, game.slot.slotId,)
             cursor.execute(gameQuery, gameArgs)
 
             if cursor.lastrowid:
                 print('last insert id', cursor.lastrowid)
             else:
                 print('last insert id not found')
-            self.conn.commit()
             if debug == 0:            
                 self.conn.commit()
             else:

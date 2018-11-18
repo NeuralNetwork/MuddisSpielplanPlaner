@@ -27,12 +27,12 @@ class TestConnectionHandling(unittest.TestCase):
         
     def test_getListOfSlotsAll(self):
         print("Testing getting list of upcoming slots of all division")
-        slots = self.instance.getListOfUpcomingSlots(None, -1)
+        slots = self.instance.getListOfUpcomingSlots(None, None)
         for slot in slots:
             start = minutesToTime(slot.start)
             end = minutesToTime(slot.end)
             location = slot.locationId
-            print(str(start[0]) + ":" + str(start[1]) + " - " + str(end[0]) + ":" + str(end[1]) + " ; " + str(location))
+            print(str(slot.start) + ":" + str(start[1]) + " - " + str((slot.end)) + ":" + str(end[1]) + " ; " + str(location))
         self.assertGreater(len(slots),0)  
        
         
@@ -59,7 +59,7 @@ class TestConnectionHandling(unittest.TestCase):
         slots = self.instance.getListOfUpcomingSlots() # get upcompiung slots
         matchup = MatchUp(teams[0], teams[1])   #set up matchups with 2 (random, the first 2) teams from all teams
         game:Game = Game(matchup,result,slots[0]) #set up game with matchup, result, and the first slot
-        self.instance.insertNextGame(game,1) # insert nextgames in debug mode (no real insertion in db). don' use second parameter for productive system
+        self.instance.insertNextGame(game,0) # insert nextgames in debug mode (no real insertion in db). don' use second parameter for productive system
 
     @classmethod    
     def tearDownClass(self):
