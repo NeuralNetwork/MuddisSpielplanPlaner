@@ -2,7 +2,7 @@ import os
 from configparser import ConfigParser
 import mysql.connector 
 from mysql.connector import MySQLConnection,Error
-from TournamentDescriptionClasses import Slot, Team, MatchUp, Game, Result, Division
+from TournamentDescriptionClasses import Slot, Team, MatchUp, Game, Result, Division, Location
 import time
 
 class DatabaseHandler:    
@@ -68,6 +68,7 @@ class DatabaseHandler:
         if locationId == None:
             locationId = -1
 
+        print(locationId)
         games = []
         if self.conn.is_connected():     
             query =     "SELECT slot.slot_start AS start, slot.slot_end AS end, slot.slot_id AS slot_id, slot.slot_round AS slot_round, slot.division_id,\
@@ -187,8 +188,32 @@ class DatabaseHandler:
                 cursor.close()      
         else:
             raise NoDatabaseConnection()
-        division.toString()
         return division
+
+
+    def getListOfLocations(self)->Location:
+        locations = []
+        if self.conn.is_connected():             
+            query = "SELECT location_id, location_name, location_description, location_color FROM location"   
+
+            try:                
+                cursor = self.conn.cursor(dictionary=True)                
+                cursor.execute(query)
+                row = cursor.fetchone() 
+                while row is not None:
+                    #print(row)
+                    location =Location (row["location_id"], row["location_name"], row["location_description"], row["location_color"])          
+                    locations.append(location)
+                    row = cursor.fetchone()        
+            except Error as e:
+                print(e)
+ 
+            finally:
+                cursor.close()      
+        else:
+            raise NoDatabaseConnection()
+
+        return locations
 
 
 
