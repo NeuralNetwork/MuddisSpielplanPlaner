@@ -24,6 +24,9 @@ class Slot:
         else:
             return self.start - other.end
 
+    def toString(self):
+       return (str(self.slotId) + "; Start: " + str(self.start) + ", End" + str(self.end) + ", Round" + str(self.round) + ", LocationId" + str(self.locationId) )
+
 class Team:
     name = ""
     acronym = ""
@@ -33,6 +36,9 @@ class Team:
         self.name = name
         self.acronym = acronym
         self.teamId = teamId
+
+    def toString(self):
+       return (str(self.teamId) + "; Name: " + self.name + ", Acronym" + self.acronym )
 
 class MatchUp:
     """ matchup between two teams
@@ -47,8 +53,8 @@ class MatchUp:
         self.second = second
         self.matchupId = matchupId
 
-    def toString():
-       return (str(self.matchupId) + "; Teams: " + self.first + ":" + self.second )
+    def toString(self):
+       return (str(self.matchupId) + "; Teams: " + self.first.toString() + ":" + self.second.toString() )
 
 class Result:
     first = -1
@@ -65,8 +71,8 @@ class Result:
         self.secondTo = timeoutsB
         self.resultId = resultId
 
-    def toString():
-       return (str(self.resultId) + "; Score: " + self.first + ":" + self.second + " Timeouts: " + self.firstTo + ":" + self.secondTo)
+    def toString(self):
+       return (str(self.resultId) + "; Score: " + str(self.first) + ":" + str(self.second) + " Timeouts: " + str(self.firstTo) + ":" + str(self.secondTo))
 
 class Game:
     matchup:MatchUp = None
@@ -87,7 +93,8 @@ class Game:
             return other.slot.start - self.slot.end
         else:
             return self.slot.start - other.slot.end
-    def toString():
+
+    def toString(self):
        return (str(self.gameId) + "; slot: " + self.slot.toString() + "; matchup " + self.matchup.toString()+ " result: " + self.result.toString())
 
 
