@@ -19,8 +19,7 @@ class DataAPI(object):
     def __del__(self): 
         """ disconnect from data source"""
         del self.databaseHandler
-
-      
+     
     def getListOfAllTeams(self, divison_id = None)->Team:
         """" getListOfAllTeams  gets all Teams (of division) stored in data source
          getListOfAllTeams(self, divison_id = None)
@@ -61,6 +60,7 @@ class DataAPI(object):
         """
         return self.databaseHandler.getListOfUpcomingSlots(timeThreshold, divisionId)
 
+    
     def getListOfGames(self, gameState = GameState.COMPLETED, locationId:int = None, divisionId = None)->Game:
         """ getListOfGame gets a list of games stored in data source
         getListOfGames(self, gameState = GameState.COMPLETED, locationId:int = None, divisionId = None)
@@ -86,8 +86,26 @@ class DataAPI(object):
         """
         return self.databaseHandler.getListOfGames(gameState, locationId, divisionId)
 
-
+    
     def insertNextGame(self, game:Game, debug:int = 0):
+        """" insertNextGame returns inserts a game in db
+        insertNextGame(self, game:Game = None, debug:int = 0)
 
+        If the argument `debug` isn't passed in, the default is no debug
+
+        Parameters
+        ----------
+        game : Game, optional
+            game from type Game. Will be inserted in db
+        debug : int, optional            
+            if no debug is given it will be in productive mode
+
+        Returns
+        -------
+        bool 
+            True if inserted
+            False if not
+        """        
         return self.databaseHandler.insertNextGame(game,debug)
+    
 

@@ -193,6 +193,7 @@ class DatabaseHandler:
 
 
     def insertNextGame(self, game:Game, debug:int = 0):
+        status = True
         matchupQuery = "INSERT INTO matchup(matchup_team1_id ,matchup_team2_id) " \
                     "VALUES(%s,%s)"
         gameQuery = "REPLACE INTO game(matchup_id ,slot_id) " \
@@ -220,12 +221,13 @@ class DatabaseHandler:
 
         except Error as error:
             self.conn.rollback()
+            status = False;
             print(error)
  
         finally:
             cursor.close()
 
-        return None
+        return status
 
 
 
