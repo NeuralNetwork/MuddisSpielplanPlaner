@@ -24,6 +24,9 @@ class Slot:
         else:
             return self.start - other.end
 
+    def toString(self):
+       return (str(self.slotId) + "; Start: " + str(self.start) + ", End" + str(self.end) + ", Round" + str(self.round) + ", LocationId" + str(self.locationId) )
+
 class Team:
     name = ""
     acronym = ""
@@ -33,6 +36,9 @@ class Team:
         self.name = name
         self.acronym = acronym
         self.teamId = teamId
+
+    def toString(self):
+       return (str(self.teamId) + "; Name: " + self.name + ", Acronym" + self.acronym )
 
 class MatchUp:
     """ matchup between two teams
@@ -46,6 +52,9 @@ class MatchUp:
         self.first = first
         self.second = second
         self.matchupId = matchupId
+
+    def toString(self):
+       return (str(self.matchupId) + "; Teams: " + self.first.toString() + ":" + self.second.toString() )
 
 class Result:
     first = -1
@@ -61,6 +70,9 @@ class Result:
         self.firstTo = timeoutsA
         self.secondTo = timeoutsB
         self.resultId = resultId
+
+    def toString(self):
+       return (str(self.resultId) + "; Score: " + str(self.first) + ":" + str(self.second) + " Timeouts: " + str(self.firstTo) + ":" + str(self.secondTo))
 
 class Game:
     matchup:MatchUp = None
@@ -82,6 +94,9 @@ class Game:
         else:
             return self.slot.start - other.slot.end
 
+    def toString(self):
+       return (str(self.gameId) + "; slot: " + self.slot.toString() + "; matchup " + self.matchup.toString()+ " result: " + self.result.toString())
+
 
 class Division:
     acronym = ""
@@ -94,6 +109,21 @@ class Division:
         self.divisionId = divisionId
 
     def toString(self):
-        print(str(self.divisionId) + " " + self.name + " " + self.acronym)
+        return (str(self.divisionId) + " " + self.name + " " + self.acronym)
+
+class Location:
+    description = ""
+    name = ""
+    color = ""
+    locationId = -1
+
+    def __init__(self, locationId, name, description = "", color =""):
+        self.description = description
+        self.name = name
+        self.color = color
+        self.locationId = locationId
+
+    def toString(self):
+        return (str(self.locationId) + ": " + self.name + " ; " + self.description+ " ; " + self.color)
         
 

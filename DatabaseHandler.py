@@ -2,7 +2,8 @@ import os
 from configparser import ConfigParser
 import mysql.connector 
 from mysql.connector import MySQLConnection,Error
-from TournamentDescriptionClasses import Slot, Team, MatchUp, Game, Result, Division
+from TournamentDescriptionClasses import Slot, Team, MatchUp, Game, Result, Division, Location
+from ScoreboardDescriptionClasses import ScoreboardText
 import time
 
 class DatabaseHandler:    
@@ -17,20 +18,28 @@ class DatabaseHandler:
             self.disconnect()
 
     ###################################################################################
-    def getListOfUpcomingSlots(self, timeThreshold = None, location_id:int = None)->Slot:
+    def getListOfUpcomingSlots(self, timeThreshold = None, divisionId:int = None, enableMinimalRound:bool = True)->Slot:
         if timeThreshold == None:          
             timeThreshold =  int(time.time())
-        if location_id == None:
-            location_id = self.__getSwissDrawDivision().divisionId
-
+        if divisionId == None:
+            divisionId = self.__getSwissDrawDivision().divisionId
+           # print(timeThreshold)
         slots = []
         if self.conn.is_connected():            
-            query = "SELECT slot_start AS start, slot_end AS end, location_id, slot_id, slot_round FROM slot WHERE slot_start > %s"                        
-            if(location_id < 0):
+            query = "SELECT slot_start AS start, slot_end AS end, location_id, slot_id, slot_round FROM slot "                        
+            if(divisionId < 0 & enableMinimalRound == True):
+                query += "WHERE slot_round = ( SELECT MIN(slot_round) FROM slot WHERE slot_start > %s)" 
                 args = (timeThreshold,)
-            else:
-               query += " AND division_id = %s"
-               args = (timeThreshold,  location_id,)            
+            elif(enableMinimalRound == True):
+               query += "WHERE slot_round = ( SELECT MIN(slot_round) FROM slot WHERE slot_start > %s  AND division_id = %s)" 
+               args = (timeThreshold,  divisionId,)    
+            elif(divisionId < 0 & enableMinimalRound==False):
+               query += " WHERE slot_start > %s" 
+               args = (timeThreshold,  ) 
+            elif(enableMinimalRound==False):
+               query += " WHERE slot_start > %s  AND division_id = %s" 
+               args = (timeThreshold,  divisionId,) 
+
 
             try:                
                 cursor = self.conn.cursor(dictionary=True)
@@ -60,6 +69,7 @@ class DatabaseHandler:
         if locationId == None:
             locationId = -1
 
+        print(locationId)
         games = []
         if self.conn.is_connected():     
             query =     "SELECT slot.slot_start AS start, slot.slot_end AS end, slot.slot_id AS slot_id, slot.slot_round AS slot_round, slot.division_id,\
@@ -179,16 +189,42 @@ class DatabaseHandler:
                 cursor.close()      
         else:
             raise NoDatabaseConnection()
-        division.toString()
         return division
+
+
+    def getListOfLocations(self)->Location:
+        locations = []
+        if self.conn.is_connected():             
+            query = "SELECT location_id, location_name, location_description, location_color FROM location"   
+
+            try:                
+                cursor = self.conn.cursor(dictionary=True)                
+                cursor.execute(query)
+                row = cursor.fetchone() 
+                while row is not None:
+                    #print(row)
+                    location =Location (row["location_id"], row["location_name"], row["location_description"], row["location_color"])          
+                    locations.append(location)
+                    row = cursor.fetchone()        
+            except Error as e:
+                print(e)
+ 
+            finally:
+                cursor.close()      
+        else:
+            raise NoDatabaseConnection()
+
+        return locations
 
 
 
     def insertNextGame(self, game:Game, debug:int = 0):
+        status = True
         matchupQuery = "INSERT INTO matchup(matchup_team1_id ,matchup_team2_id) " \
                     "VALUES(%s,%s)"
-        gameQuery = "INSERT INTO game(matchup_id ,slot_id) " \
-                    "VALUES(%s,%s)"      
+        gameQuery = "REPLACE INTO game(matchup_id ,slot_id) " \
+                    "VALUES(%s,%s) "       
+        
         try:    
             self.conn.autocommit = False
             cursor = self.conn.cursor()
@@ -196,14 +232,13 @@ class DatabaseHandler:
             matchupArgs = (game.matchup.first.teamId, game.matchup.second.teamId)        
             cursor.execute(matchupQuery, matchupArgs)
 
-            gameArgs = (cursor.lastrowid, game.slot.slotId)
+            gameArgs = (cursor.lastrowid, game.slot.slotId,)
             cursor.execute(gameQuery, gameArgs)
 
             if cursor.lastrowid:
                 print('last insert id', cursor.lastrowid)
             else:
                 print('last insert id not found')
-            self.conn.commit()
             if debug == 0:            
                 self.conn.commit()
             else:
@@ -212,12 +247,13 @@ class DatabaseHandler:
 
         except Error as error:
             self.conn.rollback()
+            status = False;
             print(error)
  
         finally:
             cursor.close()
 
-        return None
+        return status
 
 
 
@@ -247,7 +283,45 @@ class DatabaseHandler:
  
         finally:
             cursor.close()
+            
+    def getScoreboardTexts(self, location:Location = None, timeThreshold = None)->ScoreboardText:
+        scoreboardTexts = []
+        if timeThreshold == None:          
+            timeThreshold =  int(time.time())
+        if location != None:
+            locationId = location.locationId
+        else:
+            locationId = None;
 
+        if self.conn.is_connected():             
+            query = "SELECT scoreboardtext_id, location_id, scoreboardtext_text, scoreboardtext_start, scoreboardtext_end, scoreboardtext_color" \
+                " FROM scoreboardtext" \
+                " WHERE scoreboardtext_end > %s"
+            args = (timeThreshold,)
+            if ((locationId is not None) and (locationId > 0)):
+                 query += " AND location_id = %s"
+                 args = (timeThreshold, locationId)
+
+            try:                
+                cursor = self.conn.cursor(dictionary=True)                
+                cursor.execute(query, args)
+                row = cursor.fetchone() 
+                while row is not None:
+                    #print(row)
+                    scoreboardText = ScoreboardText (row["scoreboardtext_id"], row["location_id"], row["scoreboardtext_text"], row["scoreboardtext_start"], row["scoreboardtext_end"], row["scoreboardtext_color"])          
+                    scoreboardTexts.append(scoreboardText)
+                    row = cursor.fetchone()        
+            except Error as e:
+                print(e)
+ 
+            finally:
+                cursor.close()      
+        else:
+            raise NoDatabaseConnection()
+
+        return scoreboardTexts
+        return None
+   
 
     def connect(self):
         """ Connect to MySQL database """

@@ -1,6 +1,6 @@
 import unittest
-from DataAPI import DataAPI
-from TournamentDescriptionClasses import Slot, MatchUp, Result, Game, Team
+from DataAPI import DataAPI, GameState
+from TournamentDescriptionClasses import Slot, MatchUp, Result, Game, Team, Location 
 import time
 
 def minutesToTime(minutes: int):
@@ -27,12 +27,12 @@ class TestConnectionHandling(unittest.TestCase):
         
     def test_getListOfSlotsAll(self):
         print("Testing getting list of upcoming slots of all division")
-        slots = self.instance.getListOfUpcomingSlots(None, -1)
+        slots = self.instance.getListOfUpcomingSlots(None, None)
         for slot in slots:
             start = minutesToTime(slot.start)
             end = minutesToTime(slot.end)
             location = slot.locationId
-            print(str(start[0]) + ":" + str(start[1]) + " - " + str(end[0]) + ":" + str(end[1]) + " ; " + str(location))
+            print(str(slot.start) + ":" + str(start[1]) + " - " + str((slot.end)) + ":" + str(end[1]) + " ; " + str(location))
         self.assertGreater(len(slots),0)  
        
         
@@ -50,7 +50,29 @@ class TestConnectionHandling(unittest.TestCase):
 
     def test_getGames(self):
         print("testing running game")
-        self.instance.getListOfGames(2, 1)
+        self.instance.getListOfGames(GameState.RUNNING, 1)
+
+    def test_getRunningGamesInLocationFromDatabase(self):
+        print("testing running game with getting location from db")
+        locations = self.instance.getListOfLocations()
+        location = locations[0].locationId
+        print( location )
+        games = self.instance.getListOfGames(GameState.RUNNING, location)
+        for game in games:
+            print(game.toString())
+
+    def test_getLocations(self):
+        print("testing getting Locations")
+        locations = self.instance.getListOfLocations()
+        for location in locations:
+            print(location.toString())
+
+    def test_getScoreboardTexts(self):
+        print("testing getting ScoreboardTexts")
+        getScoreboardTexts = self.instance.getScoreboardTexts()
+        for getScoreboardText in getScoreboardTexts:
+            print(getScoreboardText.toString())
+
 
     def test_insertGame(self):
         print("########## testing inserting next games ############")
