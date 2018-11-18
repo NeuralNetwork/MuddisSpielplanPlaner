@@ -1,6 +1,6 @@
 from DatabaseHandler import DatabaseHandler
 from TournamentDescriptionClasses import Game, Team, Slot, Result, MatchUp, Division, Location
-from scoreboardDescriptionClasses import ScoreboardText
+from ScoreboardDescriptionClasses import ScoreboardText
 class GameState:
     NOT_YET_STARTED = 0
     COMPLETED = 1
@@ -113,7 +113,7 @@ class DataAPI(object):
 
     
     def insertNextGame(self, game:Game, debug:int = 0):
-        """" insertNextGame returns inserts a game in db
+        """" insertNextGame inserts a game in db
         insertNextGame(self, game:Game = None, debug:int = 0)
 
         If the argument `debug` isn't passed in, the default is no debug
@@ -134,6 +134,24 @@ class DataAPI(object):
         return self.databaseHandler.insertNextGame(game,debug)
 
     def getScoreboardTexts(self, location:Location = None, timeThreshold = None)->ScoreboardText:
+        """" getScoreboardTexts returns Scoreboardtexts from database
+        getScoreboardTexts(self, location:Location = None, timeThreshold = None)
+
+        If the argument `location` isn't passed in, the default are all locations
+        If the argument `timeThreshold` isn't passed in, the default is now as timestamp
+
+
+        Parameters
+        ----------
+        location : Location, optional
+            location shows for what location the scoreboard text is asked for
+        timeThreshold : int, optional            
+            timeThreshold is a timestamp. Funtion returns only scoreboardtexts ending after that threshold 
+
+        Returns
+        -------
+        ScoreboardText             
+        """        
         return  self.databaseHandler.getScoreboardTexts( location , timeThreshold )
     
 
