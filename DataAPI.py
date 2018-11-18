@@ -1,5 +1,5 @@
 from DatabaseHandler import DatabaseHandler
-from TournamentDescriptionClasses import Game, Team, Slot, Result, MatchUp, Division
+from TournamentDescriptionClasses import Game, Team, Slot, Result, MatchUp, Division, Location
 class GameState:
     NOT_YET_STARTED = 0
     COMPLETED = 1
@@ -85,6 +85,31 @@ class DataAPI(object):
             a list of games either played or not played yet
         """
         return self.databaseHandler.getListOfGames(gameState, locationId, divisionId)
+
+    def getListOfLocations(self)->Location:
+        """ getListOfGame gets a list of games stored in data source
+        getListOfGames(self, gameState = GameState.COMPLETED, locationId:int = None, divisionId = None)
+
+        If the argument `gameState` isn't passed in, the default played status is used.
+
+        Parameters
+        ---------- 
+        gameState : int, optional            
+            NOT_YET_STARTED if Game is not yet played
+            COMPLETED if Game is already played
+            RUNNING if Game is currently running.
+        locationId : int, optional            
+            if no locationId is given games of all locataions will be returned
+        divisionId : int, optional            
+            if no divisionId is given swiss draw division will be used (max one divison in database)
+            passing negeive values will lead to all division Slots as result
+
+        Returns
+        -------
+        list
+            a list of games either played or not played yet
+        """
+        return self.databaseHandler.getListOfLocations()
 
     
     def insertNextGame(self, game:Game, debug:int = 0):

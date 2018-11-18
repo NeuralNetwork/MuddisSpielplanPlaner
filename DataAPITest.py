@@ -1,6 +1,6 @@
 import unittest
-from DataAPI import DataAPI
-from TournamentDescriptionClasses import Slot, MatchUp, Result, Game, Team
+from DataAPI import DataAPI, GameState
+from TournamentDescriptionClasses import Slot, MatchUp, Result, Game, Team, Location 
 import time
 
 def minutesToTime(minutes: int):
@@ -50,7 +50,23 @@ class TestConnectionHandling(unittest.TestCase):
 
     def test_getGames(self):
         print("testing running game")
-        self.instance.getListOfGames(2, 1)
+        self.instance.getListOfGames(GameState.RUNNING, 1)
+
+    def test_getRunningGamesInLocationFromDatabase(self):
+        print("testing running game with getting location from db")
+        locations = self.instance.getListOfLocations()
+        location = locations[0].locationId
+        print( location )
+        games = self.instance.getListOfGames(GameState.RUNNING, location)
+        for game in games:
+            print(game.toString())
+
+    def test_getLocations(self):
+        print("testing getting Locations")
+        locations = self.instance.getListOfLocations()
+        for location in locations:
+            print(location.toString())
+
 
     def test_insertGame(self):
         print("########## testing inserting next games ############")
