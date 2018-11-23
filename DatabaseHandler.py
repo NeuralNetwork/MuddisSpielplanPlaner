@@ -3,7 +3,7 @@ from configparser import ConfigParser
 import mysql.connector 
 from mysql.connector import MySQLConnection,Error
 from TournamentDescriptionClasses import Slot, Team, MatchUp, Game, Result, Division, Location
-from ScoreboardDescriptionClasses import ScoreboardText
+from scoreboardDescriptionClasses import ScoreboardText
 import time
 
 class DatabaseHandler:    
