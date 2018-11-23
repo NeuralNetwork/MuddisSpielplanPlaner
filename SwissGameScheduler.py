@@ -1,15 +1,15 @@
-from TournamentDescriptionClasses import Game, MatchUp
+from TournamentDescriptionClasses import Game
 import sys
 from typing import List
 
 
 class SwissGameScheduler:
-    def getTimeDelta(self, previousMatches: List[Game], teamName: str, futureSlot: Game) -> int:
+    def getTimeDelta(self, previousMatches: List[Game], teamName: int, futureSlot: Game) -> int:
         """ calculate pause for teamName between last game and futureSlot
         """
         delta = sys.maxsize
         for match in previousMatches:
-            if match.matchup.first == teamName or match.matchup.second == teamName:
+            if match.matchup.first.teamId == teamName or match.matchup.second.teamId == teamName:
                 delta = min(delta, match.slot.distance(futureSlot.slot))
         return delta
 
@@ -21,11 +21,11 @@ class SwissGameScheduler:
         numHall3GamesB = 0
         for match in previousMatches:
             if match.slot.locationId == 3:
-                teamA = futureMatchUp.matchup.first
-                teamB = futureMatchUp.matchup.second
-                if match.matchup.first == teamA or match.matchup.second == teamA:
+                teamA = futureMatchUp.matchup.first.teamId
+                teamB = futureMatchUp.matchup.second.teamId
+                if match.matchup.first.teamId == teamA or match.matchup.second.teamId == teamA:
                     numHall3GamesA += 1
-                if match.matchup.first == teamB or match.matchup.second == teamB:
+                if match.matchup.first.teamId == teamB or match.matchup.second.teamId == teamB:
                     numHall3GamesB += 1
         return max(numHall3GamesA, numHall3GamesB)
 
@@ -41,14 +41,14 @@ class SwissGameScheduler:
         mostRecentHallB = 0
         mostRecentMatchUpTimeB = 0
         for match in previousMatches:
-            teamA = futureMatchUp.matchup.first
-            teamB = futureMatchUp.matchup.second
-            if match.matchup.first == teamA or match.matchup.second == teamA:
+            teamA = futureMatchUp.matchup.first.teamId
+            teamB = futureMatchUp.matchup.second.teamId
+            if match.matchup.first.teamId == teamA or match.matchup.second.teamId == teamA:
                 if match.slot.end > mostRecentMatchUpTimeA:
                     mostRecentHallA = match.slot.locationId
                     if mostRecentHallA == 1 or mostRecentHallA == 2:
                         mostRecentHallA = 1
-            if match.matchup.first == teamB or match.matchup.second == teamB:
+            if match.matchup.first.teamId == teamB or match.matchup.second.teamId == teamB:
                 if match.slot.end > mostRecentMatchUpTimeB:
                     mostRecentHallB = match.slot.locationId
                     if mostRecentHallB == 1 or mostRecentHallB == 2:
@@ -82,8 +82,8 @@ class SwissGameScheduler:
         ##
 
         # calculate pauses between games for both teams
-        firstDelta = self.getTimeDelta(previousMatches, futureMatchUp.matchup.first, futureSlot)
-        secondDelta = self.getTimeDelta(previousMatches, futureMatchUp.matchup.second, futureSlot)
+        firstDelta = self.getTimeDelta(previousMatches, futureMatchUp.matchup.first.teamId, futureSlot)
+        secondDelta = self.getTimeDelta(previousMatches, futureMatchUp.matchup.second.teamId, futureSlot)
         # subtract optimal pause length from effective pause length
         firstCorrectedDelta = firstDelta - targetDelta
         secondCorrectedDelta = secondDelta- targetDelta
@@ -160,12 +160,12 @@ class SwissGameScheduler:
             print("start {} end {} (hall {})  {} : {}".format(self.printTime(futureSlots[i].slot.start),
                                                               self.printTime(futureSlots[i].slot.end),
                                                               futureSlots[i].slot.locationId,
-                                                              futureMatchUps[matchupIndexList[i]].matchup.first,
-                                                              futureMatchUps[matchupIndexList[i]].matchup.second))
-            firstDelta = self.getTimeDelta(previousMatches, futureMatchUps[matchupIndexList[i]].matchup.first, futureSlots[i])
-            secondDelta = self.getTimeDelta(previousMatches, futureMatchUps[matchupIndexList[i]].matchup.second, futureSlots[i])
-            print("minutes between games for {}: {}".format(futureMatchUps[matchupIndexList[i]].matchup.first, firstDelta))
-            print("minutes between games for {}: {}".format(futureMatchUps[matchupIndexList[i]].matchup.second, secondDelta))
+                                                              futureMatchUps[matchupIndexList[i]].matchup.first.name,
+                                                              futureMatchUps[matchupIndexList[i]].matchup.second.name))
+            firstDelta = self.getTimeDelta(previousMatches, futureMatchUps[matchupIndexList[i]].matchup.first.name, futureSlots[i])
+            secondDelta = self.getTimeDelta(previousMatches, futureMatchUps[matchupIndexList[i]].matchup.second.name, futureSlots[i])
+            print("minutes between games for {}: {}".format(futureMatchUps[matchupIndexList[i]].matchup.first.name, firstDelta))
+            print("minutes between games for {}: {}".format(futureMatchUps[matchupIndexList[i]].matchup.second.name, secondDelta))
 
         # return final schedule
         resultGames = futureSlots[:]

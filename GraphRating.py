@@ -1,14 +1,14 @@
 import sys
 from typing import List, Dict
-from TournamentDescriptionClasses import Game
+from TournamentDescriptionClasses import Game, Team
 
 class ColorAndEdges:
-    def __init__(self, color: int, playedTeams: List[str]):
+    def __init__(self, color: int, playedTeams: List[Team]):
         self.color = color
         self.playedTeams = playedTeams
 
 
-def colorizeTeamsRec(colorlessTeams: Dict[str,ColorAndEdges], invalidColor: int, validColor: int, teamName: str):
+def colorizeTeamsRec(colorlessTeams: Dict[Team,ColorAndEdges], invalidColor: int, validColor: int, teamName: Team):
     if colorlessTeams[teamName].color != invalidColor:
         return
     else:
@@ -18,7 +18,7 @@ def colorizeTeamsRec(colorlessTeams: Dict[str,ColorAndEdges], invalidColor: int,
 
 
 # @return returns maximum valid coclor
-def colorizeTeams(colorlessTeams: Dict[str,ColorAndEdges], invalidColor: int, validColor: int, currentRanking: List[str]):
+def colorizeTeams(colorlessTeams: Dict[Team,ColorAndEdges], invalidColor: int, validColor: int, currentRanking: List[Team]):
     for team in currentRanking:
         if colorlessTeams[team].color == invalidColor:
             validColor += 1
@@ -26,7 +26,7 @@ def colorizeTeams(colorlessTeams: Dict[str,ColorAndEdges], invalidColor: int, va
     return validColor
 
 
-def genSubgraphMemberList(coloredTeams: Dict[str,ColorAndEdges]):
+def genSubgraphMemberList(coloredTeams: Dict[Team,ColorAndEdges]):
     maxIndex = 0
     subgraphMembers = []
     for i in range(0,len(coloredTeams)):
@@ -39,7 +39,7 @@ def genSubgraphMemberList(coloredTeams: Dict[str,ColorAndEdges]):
     return subgraphMembers[0:maxIndex+1]
 
 
-def rateFutureGames(playedGames: List[Game], futureGames: List[Game], currentRanking: List[str]):
+def rateFutureGames(playedGames: List[Game], futureGames: List[Game], currentRanking: List[Team]):
     if len(playedGames) == 0:
         raise Exception("need played games to create graphs; please supply games")
     if len(futureGames) == 0:
@@ -65,14 +65,14 @@ def rateFutureGames(playedGames: List[Game], futureGames: List[Game], currentRan
     ## setup fused subgraphs
     colorlessFusedSubgraphs = dict()
     for i in range(0,maxValidColor+1):
-        colorlessFusedSubgraphs[str(i)] = ColorAndEdges(invalidColor, [])
+        colorlessFusedSubgraphs[Team("", "", i)] = ColorAndEdges(invalidColor, [])
 
     ## fill "played" subgraphs
     for game in futureGames:
-        subgraphColorFirst = str(coloredTeams[game.matchup.first].color)
-        subgraphColorSecond = str(coloredTeams[game.matchup.second].color)
-        colorlessFusedSubgraphs[subgraphColorFirst].playedTeams.extend(subgraphColorSecond)
-        colorlessFusedSubgraphs[subgraphColorSecond].playedTeams.extend(subgraphColorFirst)
+        subgraphColorFirst = Team("", "", coloredTeams[game.matchup.first].color)
+        subgraphColorSecond = Team("", "", coloredTeams[game.matchup.second].color)
+        colorlessFusedSubgraphs[subgraphColorFirst].playedTeams.append(subgraphColorSecond)
+        colorlessFusedSubgraphs[subgraphColorSecond].playedTeams.append(subgraphColorFirst)
 
     colorizeTeams(colorlessFusedSubgraphs, invalidColor, validColor, list(colorlessFusedSubgraphs.keys()))
     subgraphMemberList = genSubgraphMemberList(colorlessFusedSubgraphs)
@@ -84,7 +84,7 @@ def rateFutureGames(playedGames: List[Game], futureGames: List[Game], currentRan
     ## calculate rating
     # optimally each subgraph should get connected by the same number of games
     # this hopefully ensures that subgraphs are pushed away by the same "force" in the ranking optimization step
-    # multiply by to, since edges are bidirectional
+    # multiply by two, since edges are bidirectional
     optimalNumEdges = len(futureGames) / len(colorlessFusedSubgraphs) * 2
     error = 0.0
     for key, fusedSubgraph in colorlessFusedSubgraphs.items():

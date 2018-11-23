@@ -1,4 +1,4 @@
-from TournamentDescriptionClasses import Game
+from TournamentDescriptionClasses import Game, Team
 import random
 import sys
 import matplotlib.pyplot as plt
@@ -28,7 +28,7 @@ rankDeltaToResultDelta = [
 ]
 
 
-def _swap(list: List[str], indexA: int, indexB: int):
+def _swap(list: List[Team], indexA: int, indexB: int):
     """ swap two list members
     """
     temp = list[indexA]
@@ -36,7 +36,7 @@ def _swap(list: List[str], indexA: int, indexB: int):
     list[indexB] = temp
 
 
-def _calculateTotalError(currentRanking: List[str], games: List[Game]) -> float:
+def _calculateTotalError(currentRanking: List[Team], games: List[Game]) -> float:
     """ Error between obtained results and results expected from ranking
     Takes into account all obtained results so far
     Converts given Ranking into results using conversion table
@@ -55,7 +55,7 @@ def _calculateTotalError(currentRanking: List[str], games: List[Game]) -> float:
     return lossSum
 
 
-def generateNewRankingPython(currentRanking: List[str], games: List[Game], debug=False) -> List[str]:
+def generateNewRankingPython(currentRanking: List[Team], games: List[Game], debug=False) -> List[Team]:
     """ heuristic search for an optimal Ranking to explain the results
     compares random permutations in their total error
     uses some variant of simulated annealing for the search
@@ -74,7 +74,7 @@ def generateNewRankingPython(currentRanking: List[str], games: List[Game], debug
     if debug:
         print("Original ranking:")
         for item in currentRanking:
-            print(item)
+            print(item.name)
         print("initial Erorr: loss=", _calculateTotalError(currentRanking, games))
     # cover large range of possible random permutations:
     for i in range(0,150000):
@@ -100,7 +100,7 @@ def generateNewRankingPython(currentRanking: List[str], games: List[Game], debug
     if debug: # debug messaging
         print("Optimal Ranking:")
         for item in minimalLossRanking:
-            print(item)
+            print(item.name)
         print("Optimal Error: loss=", minimalLoss)
         print("pAcceptWorse", pAcceptWorse)
         fig1,ax1=plt.subplots()
@@ -111,7 +111,7 @@ def generateNewRankingPython(currentRanking: List[str], games: List[Game], debug
         plt.show()
     return minimalLossRanking
 
-def generateNewRankingCpp(currentRanking: List[str], games: List[Game], debug=False) -> List[str]:
+def generateNewRankingCpp(currentRanking: List[Team], games: List[Game], debug=False) -> List[Team]:
     teamNameToInt = dict()
     for number, teamName in enumerate(currentRanking, 0):
         teamNameToInt[teamName] = int(number)
@@ -145,5 +145,5 @@ try:
 except ImportError:
     rankingFunction = generateNewRankingPython
 
-def generateNewRanking(currentRanking: List[str], games: List[Game], debug=False) -> List[str]:
+def generateNewRanking(currentRanking: List[Team], games: List[Game], debug=False) -> List[Team]:
     return rankingFunction(currentRanking, games, debug)

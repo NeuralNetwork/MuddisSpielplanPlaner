@@ -1,4 +1,4 @@
-from TournamentDescriptionClasses import MatchUp, Game
+from TournamentDescriptionClasses import MatchUp, Game, Team
 from GraphRating import rateFutureGames
 import sys
 from typing import List
@@ -60,7 +60,7 @@ class MatchUpGenerator:
 
     bestLoss = sys.maxsize
 
-    def __init__(self, ranking: List[str], results: List[Game]):
+    def __init__(self, ranking: List[Team], results: List[Game]):
         """ initialize ranking, teams, pastMatchUps, AlreadyPlayedLuT
         """
         assert len(ranking) % 2 == 0 # prevent ifinite loops, otherwise a team remains and this is not handled gracefully
@@ -158,6 +158,6 @@ class MatchUpGenerator:
         # debug messages
         if debug:
             for matchUp in bestFullyConnectedMatchUp:
-                print(matchUp.matchup.first, ":", matchUp.matchup.second)
+                print(matchUp.matchup.first.name, ":", matchUp.matchup.second.name)
             print("Distance in ranking table: loss=", self.bestLoss)
         return bestFullyConnectedMatchUp

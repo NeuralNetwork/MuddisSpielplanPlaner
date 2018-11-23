@@ -37,6 +37,12 @@ class Team:
         self.acronym = acronym
         self.teamId = teamId
 
+    def __eq__(self, other):
+        return self.name == other.name and self.acronym == other.acronym and self.teamId == other.teamId
+
+    def __hash__(self):
+        return hash(self.name) + hash(self.acronym) + hash(self.teamId)
+
     def toString(self):
        return (str(self.teamId) + "; Name: " + self.name + ", Acronym" + self.acronym )
 

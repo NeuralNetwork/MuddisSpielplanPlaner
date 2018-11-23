@@ -2,7 +2,7 @@ import csv
 from RankingGenerator import generateNewRanking
 from MatchUpGenerator import MatchUpGenerator
 from SwissGameScheduler import SwissGameScheduler
-from TournamentDescriptionClasses import MatchUp, Result, Slot, Game
+from TournamentDescriptionClasses import MatchUp, Result, Slot, Game, Team
 from os.path import join
 from time import time
 
@@ -20,24 +20,24 @@ def hhmmTom(timeString: str):
 
 
 currentRanking = [
-    "Wild Things",
-    "Göttinger 7",
-    "Häßliche Erdferkel",
-    "Saxy Divers",
-    "Goldfingers",
-    "Funatoren",
-    "Uproar Ultimate",
-    "UMS",
-    "Hucks",
-    "Frühsport",
-    "Endzonis",
-    "Alsterkutter",
-    "Caracals",
-    "Drehst'n Deckel",
-    "Airpussies",
-    "Cakes",
-    "RotPot",
-    "Paradisco",
+    Team("Wild Things", "", 0),
+    Team("Göttinger 7", "", 0),
+    Team("Häßliche Erdferkel", "", 0),
+    Team("Saxy Divers", "", 0),
+    Team("Goldfingers", "", 0),
+    Team("Funatoren", "", 0),
+    Team("Uproar Ultimate", "", 0),
+    Team("UMS", "", 0),
+    Team("Hucks", "", 0),
+    Team("Frühsport", "", 0),
+    Team("Endzonis", "", 0),
+    Team("Alsterkutter", "", 0),
+    Team("Caracals", "", 0),
+    Team("Drehst'n Deckel", "", 0),
+    Team("Airpussies", "", 0),
+    Team("Cakes", "", 0),
+    Team("RotPot", "", 0),
+    Team("Paradisco", "", 0),
 ]
 
 dataDir = "./testData/fourth_round"
@@ -46,7 +46,7 @@ results = []
 resultsFile = open(join(dataDir, "results.csv"))
 resultsCsv = csv.reader(resultsFile, delimiter=';')
 for row in resultsCsv:
-    results.append(Game(MatchUp(row[0], row[1]), Result(int(row[2]), int(row[3])), None))
+    results.append(Game(MatchUp(Team(row[0], "", 0), Team(row[1], "", 0)), Result(0, int(row[2]), int(row[3])), None))
 resultsFile.close()
 
 # read previous matches from CSV into list[Match]
@@ -54,7 +54,7 @@ previousMatches = []
 previousMatchesFile = open(join(dataDir, "previousMatches.csv"))
 previousMatchesCsv = csv.reader(previousMatchesFile, delimiter=';')
 for row in previousMatchesCsv:
-    previousMatches.append(Game(MatchUp(row[0], row[1]), None, Slot(hhmmTom(row[2]), hhmmTom(row[3]), int(row[4]))))
+    previousMatches.append(Game(MatchUp(Team(row[0], "", 0), Team(row[1], "", 0)), None, Slot(hhmmTom(row[2]), hhmmTom(row[3]), int(row[4]), 0, 0)))
 previousMatchesFile.close()
 
 # generate current ranking (debug=True)
@@ -71,14 +71,14 @@ print("time for ranking: {0}s".format(t1-t0))
 resultsWithoutResultsFile = open(join(dataDir, "resultswithoutresults.csv"))
 resultsWithoutResultsCsv = csv.reader(resultsWithoutResultsFile, delimiter=';')
 for row in resultsWithoutResultsCsv:
-    results.append(Game(MatchUp(row[0], row[1]), Result(int(row[2]), int(row[3])), None))
+    results.append(Game(MatchUp(Team(row[0], "", 0), Team(row[1], "", 0)), Result(0, int(row[2]), int(row[3])), None))
 
 # read future game slots from CSV into list[Slot]
 futureSlots = []
 futureSlotsFile = open(join(dataDir, "./futureSlots.csv"))
 futureSlotsCsv = csv.reader(futureSlotsFile, delimiter=';')
 for row in futureSlotsCsv:
-    futureSlots.append(Game(None, None, Slot(hhmmTom(row[0]), hhmmTom(row[1]), int(row[2]))))
+    futureSlots.append(Game(None, None, Slot(hhmmTom(row[0]), hhmmTom(row[1]), int(row[2]), 0, 0)))
 futureSlotsFile.close()
 
 # generate future Matchups, depending on current ranking and previous results
