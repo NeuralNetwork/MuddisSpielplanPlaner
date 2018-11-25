@@ -6,6 +6,10 @@ from TournamentDescriptionClasses import Slot, Team, MatchUp, Game, Result, Divi
 from scoreboardDescriptionClasses import ScoreboardText
 import time
 
+
+class NoDatabaseConnection(Exception):
+    pass
+
 class DatabaseHandler:    
     module_dir = os.path.dirname(__file__)
 
@@ -353,7 +357,7 @@ class DatabaseHandler:
             return False
 
 
-    def read_db_config(self, filename=module_dir + '\includes\config.ini', section='mysql'):
+    def read_db_config(self, filename=os.path.join(module_dir, 'includes/config.ini'), section='mysql'):
         """ Read database configuration file and return a dictionary object
         :param filename: name of the configuration file
         :param section: section of database configuration
@@ -372,6 +376,3 @@ class DatabaseHandler:
         else:
             raise Exception('{0} not found in the {1} file'.format(section, filename)) 
         return db
-
-    class NoDatabaseConnection(Exception):
-        pass
