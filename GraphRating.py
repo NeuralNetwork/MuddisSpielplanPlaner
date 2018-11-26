@@ -78,7 +78,7 @@ def rateFutureGames(playedGames: List[Game], futureGames: List[Game], currentRan
     subgraphMemberList = genSubgraphMemberList(colorlessFusedSubgraphs)
     # it should only a single graph remain after adding future games
     if len(subgraphMemberList) > 1:
-        hugeLoss = sys.float_info.max
+        hugeLoss = 1000000
         return hugeLoss
 
     ## calculate rating
