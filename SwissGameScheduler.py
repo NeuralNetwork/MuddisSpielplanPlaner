@@ -162,8 +162,8 @@ class SwissGameScheduler:
                                                               futureSlots[i].slot.locationId,
                                                               futureMatchUps[matchupIndexList[i]].matchup.first.name,
                                                               futureMatchUps[matchupIndexList[i]].matchup.second.name))
-            firstDelta = self.getTimeDelta(previousMatches, futureMatchUps[matchupIndexList[i]].matchup.first.name, futureSlots[i])
-            secondDelta = self.getTimeDelta(previousMatches, futureMatchUps[matchupIndexList[i]].matchup.second.name, futureSlots[i])
+            firstDelta = self.getTimeDelta(previousMatches, futureMatchUps[matchupIndexList[i]].matchup.first.teamId, futureSlots[i])
+            secondDelta = self.getTimeDelta(previousMatches, futureMatchUps[matchupIndexList[i]].matchup.second.teamId, futureSlots[i])
             print("minutes between games for {}: {}".format(futureMatchUps[matchupIndexList[i]].matchup.first.name, firstDelta))
             print("minutes between games for {}: {}".format(futureMatchUps[matchupIndexList[i]].matchup.second.name, secondDelta))
 
