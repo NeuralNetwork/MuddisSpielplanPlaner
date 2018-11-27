@@ -1,8 +1,10 @@
 
-\.vs/config/
+/.vs/config/
 
-\.vs/MuddisSpielplanPlaner/v15/
+/.vs/MuddisSpielplanPlaner/v15/
 
-\.vs/
+/.vs/
 
 __pycache__/
+
+includes/config.ini
