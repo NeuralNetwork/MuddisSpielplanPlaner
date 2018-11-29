@@ -1,12 +1,6 @@
 class ScoreboardText:
     """ Text for Scorebard to display
     """
-    scoreboardtextId = -1 	
-    locationId = -1
-    text = "" 	
-    start = -1	
-    end = -1
-    color = ""
 
     def __init__(self, scoreboardtextId:int, locationId:int, text:str, start: int, end: int, color:str):
         self.start = start

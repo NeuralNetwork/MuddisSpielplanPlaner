@@ -3,6 +3,7 @@ from GraphRating import rateFutureGames
 import sys
 from typing import List
 
+
 class BestMatchUpsManager:
     def __init__(self, numBestMatchUps):
         self._maxLoss = sys.float_info.max
@@ -35,6 +36,7 @@ class BestMatchUpsManager:
             self._matchUps.pop()
             self._maxLoss = self._matchUps[-1][0]
 
+
 class MatchUpInt:
     """ describe Matchup in Indices of ranking table
     results and matchups are commonly described in teamnames(str)
@@ -46,24 +48,27 @@ class MatchUpInt:
         self.first = first
         self.second = second
 
+
 class MatchUpGenerator:
-    # list of teams present, following current ranking
-    teams = []
-    playedGames = []
-
-    # ranking of teams [str]
-    ranking = []
-    # list of teams that already played against each other [Int]
-    pastMatchUps = [] 
-    # LookupTable for previous matchups [[Bool]]
-    alreadyPlayedLuT = []
-
-    bestLoss = sys.maxsize
-
     def __init__(self, ranking: List[Team], results: List[Game]):
         """ initialize ranking, teams, pastMatchUps, AlreadyPlayedLuT
         """
         assert len(ranking) % 2 == 0 # prevent ifinite loops, otherwise a team remains and this is not handled gracefully
+        assert len(ranking) > 0
+        assert len(results) > 0
+
+        # list of teams present, following current ranking
+        self.teams = []
+        self.playedGames = []
+
+        # ranking of teams [str]
+        self.ranking = []
+        # list of teams that already played against each other [Int]
+        self.pastMatchUps = []
+        # LookupTable for previous matchups [[Bool]]
+        self.alreadyPlayedLuT = []
+        self.bestLoss = sys.maxsize
+
         self.ranking = ranking
         self.teams = ranking
         self.playedGames = results
@@ -160,4 +165,5 @@ class MatchUpGenerator:
             for matchUp in bestFullyConnectedMatchUp:
                 print(matchUp.matchup.first.name, ":", matchUp.matchup.second.name)
             print("Distance in ranking table: loss=", self.bestLoss)
+        assert len(bestFullyConnectedMatchUp) > 0
         return bestFullyConnectedMatchUp
