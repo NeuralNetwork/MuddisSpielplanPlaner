@@ -324,8 +324,6 @@ class DatabaseHandler:
             raise NoDatabaseConnection()
 
         return scoreboardTexts
-        return None
-   
 
     def connect(self):
         """ Connect to MySQL database """
