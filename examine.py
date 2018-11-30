@@ -170,6 +170,7 @@ def evalFunction(numRounds):
 numIterations = 100
 averageLosses = 0.0
 for index in range(0,numIterations):
+    print("\n\nIteration " + str(index) + "\n")
     losses = evalFunction(5)
     averageLosses += losses * (1/numIterations)
 plt.plot(averageLosses)
