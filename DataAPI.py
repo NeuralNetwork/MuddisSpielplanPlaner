@@ -1,10 +1,13 @@
 from DatabaseHandler import DatabaseHandler
 from TournamentDescriptionClasses import Game, Team, Slot, Result, MatchUp, Division, Location
-from ScoreboardDescriptionClasses import ScoreboardText
+from scoreboardDescriptionClasses import ScoreboardText
+
+
 class GameState:
     NOT_YET_STARTED = 0
     COMPLETED = 1
     RUNNING = 2
+
 
 class DataAPI(object):
     """ DataAPI provides access to the data source where schedule information is stored  """

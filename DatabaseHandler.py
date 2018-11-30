@@ -5,6 +5,7 @@ from mysql.connector import MySQLConnection,Error
 from TournamentDescriptionClasses import Slot, Team, MatchUp, Game, Result, Division, Location
 from scoreboardDescriptionClasses import ScoreboardText
 import time
+from typing import List
 
 
 class NoDatabaseConnection(Exception):
@@ -22,7 +23,7 @@ class DatabaseHandler:
             self.disconnect()
 
     ###################################################################################
-    def getListOfUpcomingSlots(self, timeThreshold = None, divisionId:int = None, enableMinimalRound:bool = True)->Slot:
+    def getListOfUpcomingSlots(self, timeThreshold = None, divisionId:int = None, enableMinimalRound:bool = True)->List[Slot]:
         if timeThreshold == None:          
             timeThreshold =  int(time.time())
         if divisionId == None:
@@ -67,7 +68,7 @@ class DatabaseHandler:
 
 
     ###################################################################################
-    def getListOfGames(self, gameState = 1, locationId:int = None, divisionId:int = None)->Game:
+    def getListOfGames(self, gameState = 1, locationId:int = None, divisionId:int = None)->List[Game]:
         if divisionId == None:
             divisionId = self.__getSwissDrawDivision().divisionId
         if locationId == None:
@@ -140,7 +141,7 @@ class DatabaseHandler:
 
 
 ######################################################################################
-    def getListOfAllTeams(self, divisionId:int = None)->Team:
+    def getListOfAllTeams(self, divisionId:int = None)->List[Team]:
         if divisionId == None:
             divisionId = self.__getSwissDrawDivision().divisionId
 
@@ -196,7 +197,7 @@ class DatabaseHandler:
         return division
 
 
-    def getListOfLocations(self)->Location:
+    def getListOfLocations(self)->List[Location]:
         locations = []
         if self.conn.is_connected():             
             query = "SELECT location_id, location_name, location_description, location_color FROM location"   
@@ -222,7 +223,7 @@ class DatabaseHandler:
 
 
 
-    def insertNextGame(self, game:Game, debug:int = 0):
+    def insertNextGame(self, game:Game, debug:int = 0)->bool:
         status = True
         matchupQuery = "INSERT INTO matchup(matchup_team1_id ,matchup_team2_id) " \
                     "VALUES(%s,%s)"
@@ -262,7 +263,7 @@ class DatabaseHandler:
 
 
 #######################################################################################
-    def insertSlot(self, slot: Slot, debug = 0):
+    def insertSlot(self, slot: Slot, debug = 0)->None:
         query = "INSERT INTO slot(slot_start ,slot_end ,location_id, slot_round) " \
                     "VALUES(%s,%s,%s,%s)"
         args = (slot.start, slot.end, slot.locationId, slot.round)
@@ -288,7 +289,7 @@ class DatabaseHandler:
         finally:
             cursor.close()
             
-    def getScoreboardTexts(self, location:Location = None, timeThreshold = None)->ScoreboardText:
+    def getScoreboardTexts(self, location:Location = None, timeThreshold = None)->List[ScoreboardText]:
         scoreboardTexts = []
         if timeThreshold == None:          
             timeThreshold =  int(time.time())
@@ -325,7 +326,7 @@ class DatabaseHandler:
 
         return scoreboardTexts
 
-    def connect(self):
+    def connect(self)->None:
         """ Connect to MySQL database """
         #read config from file#
         db_config = self.read_db_config()
@@ -355,7 +356,7 @@ class DatabaseHandler:
             return False
 
 
-    def read_db_config(self, filename=os.path.join(module_dir, 'includes/config.ini'), section='mysql'):
+    def read_db_config(self, filename=os.path.join(module_dir, 'includes/config.ini'), section='mysql')->dict:
         """ Read database configuration file and return a dictionary object
         :param filename: name of the configuration file
         :param section: section of database configuration
