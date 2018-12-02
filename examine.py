@@ -31,7 +31,7 @@ teamParams = {Team("a", "", 0) : [0, 1, 1],
               Team("o", "", 14) : [7, 1, 1],
               Team("p", "", 15) : [7.5, 1, 1]}
 
-expectedRanking = {
+expectedRanking = [
     Team("p", "", 15),
     Team("o", "", 14),
     Team("n", "", 13),
@@ -48,7 +48,7 @@ expectedRanking = {
     Team("c", "", 2),
     Team("b", "", 1),
     Team("a", "", 0)
-}
+]
 
 def genOneResult(muPos, sigmaUp, sigmaDown):
     useSigmaUp = np.random.normal(0, 1) > 0
@@ -57,7 +57,7 @@ def genOneResult(muPos, sigmaUp, sigmaDown):
         result = muPos + offset
     else:
         offset = abs(np.random.normal(0, sigmaDown))
-        result = muPos + offset
+        result = muPos - offset
     return max(result, 0)
 
 def genResult(game : Game) -> Game:
