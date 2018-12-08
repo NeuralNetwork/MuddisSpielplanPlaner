@@ -175,6 +175,46 @@ def evalFunction(numRounds):
     return np.array(rankingLosses), np.array(timesPlayedHall3)
 
 
+def plotRankingStats(allRankingLosses):
+    ## Plot ranking losses for every team separately
+    rankingLossesVariance = np.var(allRankingLosses, axis=0)
+    rankingLossesMean = np.mean(allRankingLosses, axis=0)
+
+    assert (len(expectedRanking) == 16)
+    x = list(range(0, len(allRankingLosses[0])))
+    plt.figure(figsize=(10, 10), dpi=150)
+    for i in range(0, len(expectedRanking)):
+        plt.subplot(4, 4, i + 1)
+        plt.grid(True)
+        plt.errorbar(x, rankingLossesMean[:, i], rankingLossesVariance[:, i])
+        plt.title("Team " + expectedRanking[i].name)
+    plt.show()
+
+    ## Plot ranking losses cummulatively
+    cumulativeRankingLossesVariance = list()
+    cumulativeRankingLossesMean = list()
+    allRankingLossesNp = np.array(allRankingLosses)
+    for i in range(0, 5):
+        cumulativeRankingLossesVariance.append(np.var(allRankingLossesNp[:, i, :]))
+        cumulativeRankingLossesMean.append(np.mean(allRankingLossesNp[:, i, :]))
+    plt.grid(True)
+    plt.title("Per round stats")
+    plt.errorbar(x, cumulativeRankingLossesMean, cumulativeRankingLossesVariance)
+    plt.show()
+
+
+def plotHall3Stats(allTimesPlayedHall3):
+    ## Plot "times played in hall 3" statistics
+    timesPlayedHall3Variance = np.var(allTimesPlayedHall3, axis=0)
+    timesPlayedHall3Mean = np.mean(allTimesPlayedHall3, axis=0)
+    x = list(range(0, len(expectedRanking)))
+    plt.grid(True)
+    plt.title("times played in hall 3")
+    plt.errorbar(x, timesPlayedHall3Mean, timesPlayedHall3Variance)
+    plt.show()
+    print("allTimesPlayedHall3 variance:", np.var(allTimesPlayedHall3))
+
+
 numIterations = 100
 allRankingLosses = list()
 allTimesPlayedHall3 = list()
@@ -183,41 +223,6 @@ for index in range(0,numIterations):
     losses, timesPlayedHall3 = evalFunction(5)
     allRankingLosses.append(losses)
     allTimesPlayedHall3.append(timesPlayedHall3)
-#plt.plot(averageLosses)
-#plt.show()
 
-
-## Plot ranking losses for every team separately
-rankingLossesVariance = np.var(allRankingLosses, axis=0)
-rankingLossesMean = np.mean(allRankingLosses, axis=0)
-
-assert(len(expectedRanking) == 16)
-x = list(range(0, len(allRankingLosses[0])))
-plt.figure(figsize=(10, 10), dpi=150)
-for i in range(0, len(expectedRanking)):
-    plt.subplot(4, 4, i+1)
-    plt.grid(True)
-    plt.errorbar(x, rankingLossesMean[:, i], rankingLossesVariance[:, i])
-    plt.title("Team " + expectedRanking[i].name)
-plt.show()
-
-## Plot ranking losses cummulatively
-cumulativeRankingLossesVariance = list()
-cumulativeRankingLossesMean = list()
-allRankingLossesNp = np.array(allRankingLosses)
-for i in range(0, 5):
-    cumulativeRankingLossesVariance.append(np.var(allRankingLossesNp[:,i,:]))
-    cumulativeRankingLossesMean.append(np.mean(allRankingLossesNp[:,i,:]))
-plt.grid(True)
-plt.title("Per round stats")
-plt.errorbar(x, cumulativeRankingLossesMean, cumulativeRankingLossesVariance)
-plt.show()
-
-## Plot "times played in hall 3" statistics
-timesPlayedHall3Variance = np.var(allTimesPlayedHall3, axis=0)
-timesPlayedHall3Mean = np.mean(allTimesPlayedHall3, axis=0)
-x = list(range(0, len(expectedRanking)))
-plt.grid(True)
-plt.title("times played in hall 3")
-plt.errorbar(x, timesPlayedHall3Mean, timesPlayedHall3Variance)
-plt.show()
+plotRankingStats(allRankingLosses)
+plotHall3Stats(allTimesPlayedHall3)
