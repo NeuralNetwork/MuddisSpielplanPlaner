@@ -14,22 +14,22 @@ muPos = 0
 sigmaUpPos = 1
 sigmaDownPos = 2
 
-teamParams = {Team("a", "", 0) : [0, 1, 1],
-              Team("b", "", 1) : [0.5, 1, 1],
-              Team("c", "", 2) : [1, 1, 1],
-              Team("d", "", 3) : [1.5, 1, 1],
-              Team("e", "", 4) : [2, 1, 1],
-              Team("f", "", 5) : [2.5, 1, 1],
-              Team("g", "", 6) : [3, 1, 1],
-              Team("h", "", 7) : [3.5, 1, 1],
-              Team("i", "", 8) : [4, 1, 1],
-              Team("j", "", 9) : [4.5, 1, 1],
-              Team("k", "", 10) : [5, 1, 1],
-              Team("l", "", 11) : [5.5, 1, 1],
-              Team("m", "", 12) : [6, 1, 1],
-              Team("n", "", 13) : [6.5, 1, 1],
-              Team("o", "", 14) : [7, 1, 1],
-              Team("p", "", 15) : [7.5, 1, 1]}
+teamParams = {Team("a", "", 0) : [0, 5, 2],
+              Team("b", "", 1) : [1, 5, 2],
+              Team("c", "", 2) : [2, 5, 2],
+              Team("d", "", 3) : [3, 5, 2],
+              Team("e", "", 4) : [4, 5, 2],
+              Team("f", "", 5) : [5, 5, 2],
+              Team("g", "", 6) : [6, 5, 2],
+              Team("h", "", 7) : [7, 5, 2],
+              Team("i", "", 8) : [8, 5, 2],
+              Team("j", "", 9) : [9, 5, 2],
+              Team("k", "", 10) : [10, 2, 5],
+              Team("l", "", 11) : [11, 2, 5],
+              Team("m", "", 12) : [12, 2, 5],
+              Team("n", "", 13) : [13, 2, 5],
+              Team("o", "", 14) : [14, 2, 5],
+              Team("p", "", 15) : [15, 2, 5]}
 
 expectedRanking = [
     Team("p", "", 15),
@@ -61,20 +61,23 @@ def genOneResult(muPos, sigmaUp, sigmaDown):
     return max(result, 0)
 
 def genResult(game : Game) -> Game:
+    # make results a bit more realistic by adding a random offset
+    baseOffset = abs(np.random.normal(0, 4))
+    baseOffset = min(max(baseOffset, 4), 0)
     paramsA = teamParams[game.matchup.first]
     paramsB = teamParams[game.matchup.second]
-    resultA = genOneResult(paramsA[muPos], paramsA[sigmaUpPos], paramsA[sigmaDownPos])
-    resultB = genOneResult(paramsB[muPos], paramsB[sigmaUpPos], paramsB[sigmaDownPos])
-    game.result = Result(0, int(resultA), int(resultB))
+    resultA = genOneResult(baseOffset + paramsA[muPos], paramsA[sigmaUpPos], paramsA[sigmaDownPos])
+    resultB = genOneResult(baseOffset + paramsB[muPos], paramsB[sigmaUpPos], paramsB[sigmaDownPos])
+    game.result = Result(0, round(resultA), round(resultB))
     return game
 
 
 def calculateRankingLoss(expected, actual):
-    loss = 0
+    teamLosses = list()
     for index, team in enumerate(expected):
         diff = index - actual.index(team)
-        loss += diff**2
-    return loss
+        teamLosses.append(diff)
+    return teamLosses
 
 
 def evalFunction(numRounds):
@@ -148,7 +151,7 @@ def evalFunction(numRounds):
                Game(MatchUp(Team("k", "", 10), Team("l", "", 11)), Result(0, 10, 11), Slot(-40, -5, hall3, 0, -1)),
                Game(MatchUp(Team("m", "", 12), Team("n", "", 13)), Result(0, 10, 11), Slot(-40, -5, hall1, 0, -1)),
                Game(MatchUp(Team("o", "", 14), Team("p", "", 15)), Result(0, 10, 11), Slot(-40, -5, hall2, 0, -1)),]
-    losses = []
+    rankingLosses = []
     for i in range(0, numRounds):
         # generate matchups
         matchUpGenerator = MatchUpGenerator(ranking, results)
@@ -161,17 +164,60 @@ def evalFunction(numRounds):
             results.append(genResult(game))
         # generate ranking
         ranking = generateNewRanking(ranking, results, False)
-        losses.append(calculateRankingLoss(expectedRanking, ranking))
+        rankingLosses.append(calculateRankingLoss(expectedRanking, ranking))
 
-    #TODO calculate average number of hall changes, max number of hall changes
-    return np.array(losses)
+    timesPlayedHall3 = [0] * len(expectedRanking)
+    for game in results:
+        if(game.slot.locationId == hall3):
+            timesPlayedHall3[expectedRanking.index(game.matchup.first)] += 1
+            timesPlayedHall3[expectedRanking.index(game.matchup.second)] += 1
+
+    return np.array(rankingLosses), np.array(timesPlayedHall3)
 
 
 numIterations = 100
-averageLosses = 0.0
+allRankingLosses = list()
+allTimesPlayedHall3 = list()
 for index in range(0,numIterations):
     print("\n\nIteration " + str(index) + "\n")
-    losses = evalFunction(5)
-    averageLosses += losses * (1/numIterations)
-plt.plot(averageLosses)
+    losses, timesPlayedHall3 = evalFunction(5)
+    allRankingLosses.append(losses)
+    allTimesPlayedHall3.append(timesPlayedHall3)
+#plt.plot(averageLosses)
+#plt.show()
+
+
+## Plot ranking losses for every team separately
+rankingLossesVariance = np.var(allRankingLosses, axis=0)
+rankingLossesMean = np.mean(allRankingLosses, axis=0)
+
+assert(len(expectedRanking) == 16)
+x = list(range(0, len(allRankingLosses[0])))
+plt.figure(figsize=(10, 10), dpi=150)
+for i in range(0, len(expectedRanking)):
+    plt.subplot(4, 4, i+1)
+    plt.grid(True)
+    plt.errorbar(x, rankingLossesMean[:, i], rankingLossesVariance[:, i])
+    plt.title("Team " + expectedRanking[i].name)
+plt.show()
+
+## Plot ranking losses cummulatively
+cumulativeRankingLossesVariance = list()
+cumulativeRankingLossesMean = list()
+allRankingLossesNp = np.array(allRankingLosses)
+for i in range(0, 5):
+    cumulativeRankingLossesVariance.append(np.var(allRankingLossesNp[:,i,:]))
+    cumulativeRankingLossesMean.append(np.mean(allRankingLossesNp[:,i,:]))
+plt.grid(True)
+plt.title("Per round stats")
+plt.errorbar(x, cumulativeRankingLossesMean, cumulativeRankingLossesVariance)
+plt.show()
+
+## Plot "times played in hall 3" statistics
+timesPlayedHall3Variance = np.var(allTimesPlayedHall3, axis=0)
+timesPlayedHall3Mean = np.mean(allTimesPlayedHall3, axis=0)
+x = list(range(0, len(expectedRanking)))
+plt.grid(True)
+plt.title("times played in hall 3")
+plt.errorbar(x, timesPlayedHall3Mean, timesPlayedHall3Variance)
 plt.show()
