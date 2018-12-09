@@ -3,6 +3,7 @@ from DataAPI import DataAPI, GameState
 from TournamentDescriptionClasses import Slot, MatchUp, Result, Game, Team, Location 
 import time
 
+divisionId_Swissdraw = 8
 def minutesToTime(minutes: int):
     hour = int(minutes / 60)
     restMinutes = int(minutes % 60)
@@ -17,7 +18,7 @@ class TestConnectionHandling(unittest.TestCase):
 
     def test_getListOfSlots(self):
         print("Testing getting list of upcoming slots of swiss draw division")
-        slots = self.instance.getListOfUpcomingSlots()
+        slots = self.instance.getListOfUpcomingSlots(divisionId_Swissdraw)
         for slot in slots:
             start = minutesToTime(slot.start)
             end = minutesToTime(slot.end)
@@ -27,7 +28,7 @@ class TestConnectionHandling(unittest.TestCase):
         
     def test_getListOfSlotsAll(self):
         print("Testing getting list of upcoming slots of all division")
-        slots = self.instance.getListOfUpcomingSlots(None, None)
+        slots = self.instance.getListOfUpcomingSlots(divisionId_Swissdraw, None)
         for slot in slots:
             start = minutesToTime(slot.start)
             end = minutesToTime(slot.end)
@@ -38,14 +39,14 @@ class TestConnectionHandling(unittest.TestCase):
         
     def test_getListOfAllTeams(self):
         print("testing getting list of all teams")
-        teams = self.instance.getListOfAllTeams()
+        teams = self.instance.getListOfAllTeams(divisionId_Swissdraw)
         for team in teams:
             print(team.name + ", " + team.acronym + ", " + str(team.teamId))
         self.assertGreater(len(teams),0)
 
     def test_getListOfGames(self):
         print("testing gettingListOfPlayedGames")
-        self.instance.getListOfGames()
+        self.instance.getListOfGames(divisionId_Swissdraw)
         print("#####################################################################")
 
     def test_getGames(self):
@@ -76,9 +77,9 @@ class TestConnectionHandling(unittest.TestCase):
 
     def test_insertGame(self):
         print("########## testing inserting next games ############")
-        teams = self.instance.getListOfAllTeams() # get a list of teams
+        teams = self.instance.getListOfAllTeams(divisionId_Swissdraw) # get a list of teams
         result = Result(None,0,0,0,0)   # set a result
-        slots = self.instance.getListOfUpcomingSlots() # get upcompiung slots
+        slots = self.instance.getListOfUpcomingSlots(divisionId_Swissdraw) # get upcompiung slots
         if(len(slots) != 0):
             matchup = MatchUp(teams[0], teams[1])   #set up matchups with 2 (random, the first 2) teams from all teams
             game:Game = Game(matchup,result,slots[0]) #set up game with matchup, result, and the first slot

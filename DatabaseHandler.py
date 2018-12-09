@@ -24,11 +24,11 @@ class DatabaseHandler:
             self.disconnect()
 
     ###################################################################################
-    def getListOfUpcomingSlots(self, timeThreshold = None, divisionId:int = None, enableMinimalRound:bool = True)->List[Slot]:
-        if timeThreshold == None:          
-            timeThreshold =  int(time.time())
+    def getListOfUpcomingSlots(self, divisionId:int, timeThreshold = None, enableMinimalRound:bool = True)->List[Slot]:
+        if(divisionId== None or divisionId < 0):
+            raise Exception()
         if divisionId == None:
-            divisionId = self.__getSwissDrawDivision().divisionId
+            divisionId = self.getSwissDrawDivision().divisionId
            # print(timeThreshold)
         slots = []
         if self.conn.is_connected():            
@@ -69,9 +69,9 @@ class DatabaseHandler:
 
 
     ###################################################################################
-    def getListOfGames(self, gameState = 1, locationId:int = None, divisionId:int = None)->List[Game]:
-        if divisionId == None:
-            divisionId = self.__getSwissDrawDivision().divisionId
+    def getListOfGames(self,divisionId:int, gameState = 1, locationId:int = None)->List[Game]:
+        if(divisionId== None or divisionId < 0):
+            raise Exception()
         if locationId == None:
             locationId = -1
 
@@ -93,21 +93,10 @@ class DatabaseHandler:
                         WHERE game_completed = %s "
 
             orderBy = "start";
-            if(locationId >= 0 & divisionId >= 0):
-                query += "AND location.location_id = %s "  
-                query += "AND slot.division_id = %s " 
+            if(locationId >= 0 ):
+                query += "AND location.location_id = %s "   
                 query += "ORDER BY " + orderBy                
-                args = (gameState, locationId, divisionId,) 
-            
-            elif(locationId < 0  & divisionId >= 0):
-                query += "AND slot.division_id = %s " 
-                query += "ORDER BY " + orderBy                 
-                args = (gameState, divisionId,) 
-
-            elif(locationId >= 0  & divisionId < 0):
-                query += "AND location_id = %s "             
-                query += "ORDER BY " + orderBy            
-                args = (gameState, locationId,)                
+                args = (gameState, locationId, )             
             else:                     
                 query += "ORDER BY " + orderBy   
                 args = (gameState,) 
@@ -142,18 +131,16 @@ class DatabaseHandler:
 
 
 ######################################################################################
-    def getListOfAllTeams(self, divisionId:int = None)->List[Team]:
-        if divisionId == None:
-            divisionId = self.__getSwissDrawDivision().divisionId
+    def getListOfAllTeams(self, divisionId:int)->List[Team]:
+        if(divisionId== None or divisionId < 0):
+            raise Exception()
 
         teams = []
         if self.conn.is_connected():             
             query = "SELECT team_id, team_name, team_acronym FROM team "    
-            if(divisionId >= 0):
-                query += "WHERE division_id = %s "                
-                args = (divisionId,) 
-            else:
-                 args = None
+            query += "WHERE division_id = %s "                
+            args = (divisionId,) 
+
             try:                
                 cursor = self.conn.cursor(dictionary=True)    
                 if(args == None):
@@ -177,16 +164,20 @@ class DatabaseHandler:
         return teams
 
 
-    def __getSwissDrawDivision(self)->Division:
+    def getSwissDrawDivisions(self)->List[Division]:
         divisions = []
         if self.conn.is_connected():             
-            query = "SELECT division_id, division_name, division_acronym FROM division WHERE division_optimized = 1 LIMIT 1"   
+            query = "SELECT division_id, division_name, division_acronym FROM division WHERE division_optimized = 1"   
 
-            try:                
-                cursor = self.conn.cursor(dictionary=True)                
-                cursor.execute(query)
+            try:             
+                
+                cursor = self.conn.cursor(dictionary=True)
+                cursor.execute(query, args)
                 row = cursor.fetchone() 
-                division =Division (row["division_id"], row["division_name"], row["division_acronym"])          
+                while row is not None:
+                    division =Division (row["division_id"], row["division_name"], row["division_acronym"])  
+                    divisions.append(division)
+                    row = cursor.fetchone()                  
                 
             except Error as e:
                 print(e)

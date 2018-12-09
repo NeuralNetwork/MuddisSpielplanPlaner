@@ -21,8 +21,13 @@ class DataAPI(object):
     def __del__(self): 
         """ disconnect from data source"""
         del self.databaseHandler
+
+    def getSwissDrawDivisions():
+        
+        return self.databaseHandler.getSwissDrawDivisions();
+
      
-    def getListOfAllTeams(self, divisonId = None)->List[Team]:
+    def getListOfAllTeams(self, divisonId)->List[Team]:
         """" getListOfAllTeams  gets all Teams (of division) stored in data source
          getListOfAllTeams(self, divison_id = None)
          
@@ -39,7 +44,7 @@ class DataAPI(object):
         """
         return self.databaseHandler.getListOfAllTeams(divisonId)
 
-    def getListOfUpcomingSlots(self, timeThreshold:int = None, divisionId = None)->List[Slot]:
+    def getListOfUpcomingSlots(self,divisionId, timeThreshold:int = None)->List[Slot]:
         """" getListOfUpcomingSlots returns a list of all slots beeing later than timeThreshhold
         getListOfUpcomingSlots(self, timeThreshold:int = None, divisionId = None)
 
@@ -60,10 +65,10 @@ class DataAPI(object):
         list
             a list of Slots taking place after time threshold in division with divisionId
         """
-        return self.databaseHandler.getListOfUpcomingSlots(timeThreshold, divisionId)
+        return self.databaseHandler.getListOfUpcomingSlots(divisionId, timeThreshold)
 
     
-    def getListOfGames(self, gameState = GameState.COMPLETED, locationId:int = None, divisionId = None)->List[Game]:
+    def getListOfGames(self, divisionId, gameState = GameState.COMPLETED, locationId:int = None)->List[Game]:
         """ getListOfGame gets a list of games stored in data source
         getListOfGames(self, gameState = GameState.COMPLETED, locationId:int = None, divisionId = None)
 
@@ -86,7 +91,7 @@ class DataAPI(object):
         list
             a list of games either played or not played yet
         """
-        return self.databaseHandler.getListOfGames(gameState, locationId, divisionId)
+        return self.databaseHandler.getListOfGames(gameState,divisionId, locationId)
 
     def getListOfLocations(self)->List[Location]:
         """ getListOfGame gets a list of games stored in data source
