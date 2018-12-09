@@ -22,9 +22,8 @@ class DataAPI(object):
         """ disconnect from data source"""
         del self.databaseHandler
 
-    def getSwissDrawDivisions():
-        
-        return self.databaseHandler.getSwissDrawDivisions();
+    def getSwissDrawDivisions(self):        
+        return self.databaseHandler.getSwissDrawDivisions()
 
      
     def getListOfAllTeams(self, divisonId)->List[Team]:
@@ -68,7 +67,7 @@ class DataAPI(object):
         return self.databaseHandler.getListOfUpcomingSlots(divisionId, timeThreshold)
 
     
-    def getListOfGames(self, divisionId, gameState = GameState.COMPLETED, locationId:int = None)->List[Game]:
+    def getListOfGames(self, divisionId, gameState:GameState = GameState.COMPLETED, locationId:int = None)->List[Game]:
         """ getListOfGame gets a list of games stored in data source
         getListOfGames(self, gameState = GameState.COMPLETED, locationId:int = None, divisionId = None)
 
@@ -119,7 +118,7 @@ class DataAPI(object):
         return self.databaseHandler.getListOfLocations()
 
     
-    def insertNextGame(self, game:Game, debug:int = 0):
+    def insertNextGame(self, game:Game, gamestate:GameState, debug:int = 0):
         """" insertNextGame inserts a game in db
         insertNextGame(self, game:Game = None, debug:int = 0)
 
@@ -138,7 +137,7 @@ class DataAPI(object):
             True if inserted
             False if not
         """        
-        return self.databaseHandler.insertNextGame(game,debug)
+        return self.databaseHandler.insertNextGame(game,gamestate,debug)
 
     def getScoreboardTexts(self, location:Location = None, timeThreshold = None)->List[ScoreboardText]:
         """" getScoreboardTexts returns Scoreboardtexts from database

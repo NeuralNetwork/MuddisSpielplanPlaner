@@ -69,7 +69,7 @@ class DatabaseHandler:
 
 
     ###################################################################################
-    def getListOfGames(self,divisionId:int, gameState = 1, locationId:int = None)->List[Game]:
+    def getListOfGames(self,divisionId:int, gameState:GameState = 1, locationId:int = None)->List[Game]:
         if(divisionId== None or divisionId < 0):
             raise Exception()
         if locationId == None:
@@ -172,7 +172,7 @@ class DatabaseHandler:
             try:             
                 
                 cursor = self.conn.cursor(dictionary=True)
-                cursor.execute(query, args)
+                cursor.execute(query)
                 row = cursor.fetchone() 
                 while row is not None:
                     division =Division (row["division_id"], row["division_name"], row["division_acronym"])  
@@ -186,7 +186,7 @@ class DatabaseHandler:
                 cursor.close()      
         else:
             raise NoDatabaseConnection()
-        return division
+        return divisions
 
 
     def getListOfLocations(self)->List[Location]:

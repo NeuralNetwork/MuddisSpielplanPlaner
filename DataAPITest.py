@@ -74,6 +74,12 @@ class TestConnectionHandling(unittest.TestCase):
         for getScoreboardText in getScoreboardTexts:
             print(getScoreboardText.toString())
 
+    def test_getSwissDrawDivision(self):
+        print("testing getting SwissDrawDivisions")
+        getSwissDrwawDivisions = self.instance.getSwissDrawDivisions()
+        for getSwissDrwawDivision in getSwissDrwawDivisions:
+            print(getSwissDrwawDivision)
+
 
     def test_insertGame(self):
         print("########## testing inserting next games ############")
