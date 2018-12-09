@@ -26,14 +26,14 @@ class DataAPI(object):
         return self.databaseHandler.getSwissDrawDivisions()
 
      
-    def getListOfAllTeams(self, divisonId)->List[Team]:
+    def getListOfAllTeams(self, divisionId)->List[Team]:
         """" getListOfAllTeams  gets all Teams (of division) stored in data source
-         getListOfAllTeams(self, divison_id = None)
+         getListOfAllTeams(self, divisionId = None)
          
         Parameters
         ----------
         divisionId : int, optional            
-            if no divisionId is given swiss draw division will be used (max one divison in database)
+            if no divisionId is given swiss draw division will be used (max one division in database)
             passing negative values will lead to all division Slots as result
 
         Returns
@@ -41,7 +41,7 @@ class DataAPI(object):
         list
             a list of all Teams (of a division)
         """
-        return self.databaseHandler.getListOfAllTeams(divisonId)
+        return self.databaseHandler.getListOfAllTeams(divisionId)
 
     def getListOfUpcomingSlots(self,divisionId, timeThreshold:int = None)->List[Slot]:
         """" getListOfUpcomingSlots returns a list of all slots beeing later than timeThreshhold
@@ -56,7 +56,7 @@ class DataAPI(object):
             unix-timestamp (seconds since 1970)
             if no timeThreshold is given threshold will be now
         divisionId : int, optional            
-            if no divisionId is given swiss draw division will be used (max one divison in database)
+            if no divisionId is given swiss draw division will be used (max one division in database)
             passing negeive values will lead to all division Slots as result
 
         Returns
@@ -82,7 +82,7 @@ class DataAPI(object):
         locationId : int, optional            
             if no locationId is given games of all locataions will be returned
         divisionId : int, optional            
-            if no divisionId is given swiss draw division will be used (max one divison in database)
+            if no divisionId is given swiss draw division will be used (max one division in database)
             passing negeive values will lead to all division Slots as result
 
         Returns
@@ -90,7 +90,7 @@ class DataAPI(object):
         list
             a list of games either played or not played yet
         """
-        return self.databaseHandler.getListOfGames(gameState,divisionId, locationId)
+        return self.databaseHandler.getListOfGames(divisionId, gameState, locationId)
 
     def getListOfLocations(self)->List[Location]:
         """ getListOfGame gets a list of games stored in data source
@@ -107,7 +107,7 @@ class DataAPI(object):
         locationId : int, optional            
             if no locationId is given games of all locataions will be returned
         divisionId : int, optional            
-            if no divisionId is given swiss draw division will be used (max one divison in database)
+            if no divisionId is given swiss draw division will be used (max one division in database)
             passing negeive values will lead to all division Slots as result
 
         Returns

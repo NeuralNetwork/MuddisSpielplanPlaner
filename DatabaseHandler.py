@@ -27,9 +27,6 @@ class DatabaseHandler:
     def getListOfUpcomingSlots(self, divisionId:int, timeThreshold = None, enableMinimalRound:bool = True)->List[Slot]:
         if(divisionId== None or divisionId < 0):
             raise Exception()
-        if divisionId == None:
-            divisionId = self.getSwissDrawDivision().divisionId
-           # print(timeThreshold)
         slots = []
         if self.conn.is_connected():            
             query = "SELECT slot_start AS start, slot_end AS end, location_id, slot_id, slot_round FROM slot "                        
@@ -92,7 +89,7 @@ class DatabaseHandler:
                         INNER JOIN team AS team2 ON matchup_team2_id = team2.team_id \
                         WHERE game_completed = %s "
 
-            orderBy = "start";
+            orderBy = "start"
             if(locationId >= 0 ):
                 query += "AND location.location_id = %s "   
                 query += "ORDER BY " + orderBy                
@@ -244,7 +241,7 @@ class DatabaseHandler:
 
         except Error as error:
             self.conn.rollback()
-            status = False;
+            status = False
             print(error)
  
         finally:
@@ -256,8 +253,6 @@ class DatabaseHandler:
 
 #######################################################################################
     def insertSlot(self, slot: Slot, debug = 0)->None:
-        if(len(slot) == 0):
-            return None;
         query = "INSERT INTO slot(slot_start ,slot_end ,location_id, slot_round) " \
                     "VALUES(%s,%s,%s,%s)"
         args = (slot.start, slot.end, slot.locationId, slot.round)
@@ -290,7 +285,7 @@ class DatabaseHandler:
         if location != None:
             locationId = location.locationId
         else:
-            locationId = None;
+            locationId = None
 
         if self.conn.is_connected():             
             query = "SELECT scoreboardtext_id, location_id, scoreboardtext_text, scoreboardtext_start, scoreboardtext_end, scoreboardtext_color" \

@@ -51,7 +51,7 @@ class TestConnectionHandling(unittest.TestCase):
 
     def test_getGames(self):
         print("testing running game")
-        self.instance.getListOfGames(GameState.RUNNING, 1)
+        self.instance.getListOfGames(1, GameState.RUNNING)
 
     def test_getRunningGamesInLocationFromDatabase(self):
         print("testing running game with getting location from db")
@@ -84,7 +84,7 @@ class TestConnectionHandling(unittest.TestCase):
     def test_insertGame(self):
         print("########## testing inserting next games ############")
         teams = self.instance.getListOfAllTeams(divisionId_Swissdraw) # get a list of teams
-        result = Result(None,0,0,0,0)   # set a result
+        result = Result(-1,0,0,0,0)   # set a result
         slots = self.instance.getListOfUpcomingSlots(divisionId_Swissdraw) # get upcompiung slots
         if(len(slots) != 0):
             matchup = MatchUp(teams[0], teams[1])   #set up matchups with 2 (random, the first 2) teams from all teams
@@ -94,8 +94,7 @@ class TestConnectionHandling(unittest.TestCase):
     @classmethod    
     def tearDownClass(self):
         print("Destruct test")
-        del self.instance
-        
+
 
 if __name__ == '__main__':
     unittest.sortTestMethodsUsing = None
