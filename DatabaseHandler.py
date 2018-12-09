@@ -264,6 +264,8 @@ class DatabaseHandler:
 
 #######################################################################################
     def insertSlot(self, slot: Slot, debug = 0)->None:
+        if(len(slot) == 0):
+            return None;
         query = "INSERT INTO slot(slot_start ,slot_end ,location_id, slot_round) " \
                     "VALUES(%s,%s,%s,%s)"
         args = (slot.start, slot.end, slot.locationId, slot.round)

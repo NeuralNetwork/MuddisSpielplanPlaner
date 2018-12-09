@@ -79,10 +79,11 @@ class TestConnectionHandling(unittest.TestCase):
         teams = self.instance.getListOfAllTeams() # get a list of teams
         result = Result(None,0,0,0,0)   # set a result
         slots = self.instance.getListOfUpcomingSlots() # get upcompiung slots
-        matchup = MatchUp(teams[0], teams[1])   #set up matchups with 2 (random, the first 2) teams from all teams
-        game:Game = Game(matchup,result,slots[0]) #set up game with matchup, result, and the first slot
-        self.instance.insertNextGame(game,1) # insert nextgames in debug mode (no real insertion in db). don' use second parameter for productive system
-
+        if(len(slots) != 0):
+            matchup = MatchUp(teams[0], teams[1])   #set up matchups with 2 (random, the first 2) teams from all teams
+            game:Game = Game(matchup,result,slots[0]) #set up game with matchup, result, and the first slot
+            self.instance.insertNextGame(game,1) # insert nextgames in debug mode (no real insertion in db). don' use second parameter for productive system
+        print("no available Slots found")
     @classmethod    
     def tearDownClass(self):
         print("Destruct test")
