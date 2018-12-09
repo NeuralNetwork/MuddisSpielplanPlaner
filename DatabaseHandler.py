@@ -223,12 +223,12 @@ class DatabaseHandler:
 
 
 
-    def insertNextGame(self, game:Game, debug:int = 0)->bool:
+    def insertNextGame(self, game:Game, gamestate:GameState, debug:int = 0)->bool:
         status = True
         matchupQuery = "INSERT INTO matchup(matchup_team1_id ,matchup_team2_id) " \
                     "VALUES(%s,%s)"
-        gameQuery = "REPLACE INTO game(matchup_id ,slot_id) " \
-                    "VALUES(%s,%s) "       
+        gameQuery = "REPLACE INTO game(matchup_id ,slot_id, game_completed) " \
+                    "VALUES(%s,%s,%s) "       
         
         try:    
             self.conn.autocommit = False
@@ -237,7 +237,7 @@ class DatabaseHandler:
             matchupArgs = (game.matchup.first.teamId, game.matchup.second.teamId)        
             cursor.execute(matchupQuery, matchupArgs)
 
-            gameArgs = (cursor.lastrowid, game.slot.slotId,)
+            gameArgs = (cursor.lastrowid, game.slot.slotId, gamestate,)
             cursor.execute(gameQuery, gameArgs)
 
             if cursor.lastrowid:
