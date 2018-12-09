@@ -6,27 +6,29 @@ from SwissGameScheduler import SwissGameScheduler
 
 api = DataAPI()
 
-# create ranking
-teams = api.getListOfAllTeams()
-#TODO get list of games in one action to prevent possible race conditions
-gamesRelevantForRanking = api.getListOfGames(GameState.COMPLETED)
-gamesRelevantForRanking.extend(api.getListOfGames(GameState.RUNNING))
-ranking = generateNewRanking(teams, gamesRelevantForRanking)
+for divisionId in api.getSwissDrawDivisions():
+    # create ranking
+    teams = api.getListOfAllTeams(divisionId)
+    #TODO get list of games in one action to prevent possible race conditions
+    gamesRelevantForRanking = api.getListOfGames(gameState=GameState.COMPLETED, divisionId=divisionId)
+    gamesRelevantForRanking.extend(api.getListOfGames(gameState=GameState.RUNNING, divisionId=divisionId))
+    ranking = generateNewRanking(teams, gamesRelevantForRanking)
 
-# create matchups
-allGames = api.getListOfGames(GameState.COMPLETED)
-allGames.extend(api.getListOfGames(GameState.RUNNING))
-allGames.extend(api.getListOfGames(GameState.NOT_YET_STARTED))
-matchUpGenerator = MatchUpGenerator(ranking, allGames)
-futureMatchUps = matchUpGenerator.generateMatchUps(True)
+    # create matchups
+    allGames = api.getListOfGames(gameState=GameState.COMPLETED, divisionId=divisionId)
+    allGames.extend(api.getListOfGames(gameState=GameState.RUNNING, divisionId=divisionId))
+    allGames.extend(api.getListOfGames(gameState=GameState.NOT_YET_STARTED, divisionId=divisionId))
+    matchUpGenerator = MatchUpGenerator(ranking, allGames)
+    futureMatchUps = matchUpGenerator.generateMatchUps(True)
 
-# schedule games
-futureSlots = []
-for slot in api.getListOfUpcomingSlots():
-    futureSlots.append(Game(None, None, slot))
+    # schedule games
+    futureSlots = []
+    for slot in api.getListOfUpcomingSlots(divisionId=divisionId):
+        futureSlots.append(Game(None, None, slot))
 
-scheduler = SwissGameScheduler()
-nextGames = scheduler.maximizeGain(allGames, futureSlots, futureMatchUps)
+    #TODO do something sensible if there are no games to be scheduled
+    scheduler = SwissGameScheduler()
+    nextGames = scheduler.maximizeGain(allGames, futureSlots, futureMatchUps)
 
-for nextGame in nextGames:
-    api.insertNextGame(nextGame)
+    for nextGame in nextGames:
+        api.insertNextGame(nextGame, GameState.PREDICTION)
