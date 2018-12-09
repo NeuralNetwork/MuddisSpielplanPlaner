@@ -1,6 +1,7 @@
 from DatabaseHandler import DatabaseHandler
 from TournamentDescriptionClasses import Game, Team, Slot, Result, MatchUp, Division, Location
 from scoreboardDescriptionClasses import ScoreboardText
+from typing import List
 
 
 class GameState:
@@ -23,7 +24,7 @@ class DataAPI(object):
         """ disconnect from data source"""
         del self.databaseHandler
      
-    def getListOfAllTeams(self, divison_id = None)->Team:
+    def getListOfAllTeams(self, divison_id = None)->List[Team]:
         """" getListOfAllTeams  gets all Teams (of division) stored in data source
          getListOfAllTeams(self, divison_id = None)
          
@@ -40,7 +41,7 @@ class DataAPI(object):
         """
         return self.databaseHandler.getListOfAllTeams()
 
-    def getListOfUpcomingSlots(self, timeThreshold:int = None, divisionId = None)->Slot:
+    def getListOfUpcomingSlots(self, timeThreshold:int = None, divisionId = None)->List[Slot]:
         """" getListOfUpcomingSlots returns a list of all slots beeing later than timeThreshhold
         getListOfUpcomingSlots(self, timeThreshold:int = None, divisionId = None)
 
@@ -64,7 +65,7 @@ class DataAPI(object):
         return self.databaseHandler.getListOfUpcomingSlots(timeThreshold, divisionId)
 
     
-    def getListOfGames(self, gameState = GameState.COMPLETED, locationId:int = None, divisionId = None)->Game:
+    def getListOfGames(self, gameState = GameState.COMPLETED, locationId:int = None, divisionId = None)->List[Game]:
         """ getListOfGame gets a list of games stored in data source
         getListOfGames(self, gameState = GameState.COMPLETED, locationId:int = None, divisionId = None)
 
@@ -89,7 +90,7 @@ class DataAPI(object):
         """
         return self.databaseHandler.getListOfGames(gameState, locationId, divisionId)
 
-    def getListOfLocations(self)->Location:
+    def getListOfLocations(self)->List[Location]:
         """ getListOfGame gets a list of games stored in data source
         getListOfGames(self, gameState = GameState.COMPLETED, locationId:int = None, divisionId = None)
 
@@ -136,7 +137,7 @@ class DataAPI(object):
         """        
         return self.databaseHandler.insertNextGame(game,debug)
 
-    def getScoreboardTexts(self, location:Location = None, timeThreshold = None)->ScoreboardText:
+    def getScoreboardTexts(self, location:Location = None, timeThreshold = None)->List[ScoreboardText]:
         """" getScoreboardTexts returns Scoreboardtexts from database
         getScoreboardTexts(self, location:Location = None, timeThreshold = None)
 
