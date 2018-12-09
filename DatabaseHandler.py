@@ -24,6 +24,18 @@ class DatabaseHandler:
             self.disconnect()
 
     ###################################################################################
+    def getFinalzeGameTime(self):
+        if self.conn.is_connected():   
+            query = "SELECT finalizeGameScheduleTime_time FROM finalizegamescheduletime LIMIT 1"           
+            cursor = self.conn.cursor(dictionary=True)
+            cursor.execute(query)
+            row = cursor.fetchone() 
+            getFinalzeGameTime = row["finalizeGameScheduleTime_time"]
+        else:
+            raise NoDatabaseConnection()
+        return getFinalzeGameTime
+
+    ###################################################################################
     def getListOfUpcomingSlots(self, divisionId:int, timeThreshold = None, enableMinimalRound:bool = True)->List[Slot]:
         if(divisionId== None or divisionId < 0):
             raise Exception()

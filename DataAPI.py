@@ -25,6 +25,8 @@ class DataAPI(object):
     def getSwissDrawDivisions(self):        
         return self.databaseHandler.getSwissDrawDivisions()
 
+    def getFinalizeGameTime(self):
+        return self.databaseHandler.getFinalzeGameTime()
      
     def getListOfAllTeams(self, divisionId)->List[Team]:
         """" getListOfAllTeams  gets all Teams (of division) stored in data source

@@ -78,7 +78,12 @@ class TestConnectionHandling(unittest.TestCase):
         print("testing getting SwissDrawDivisions")
         getSwissDrwawDivisions = self.instance.getSwissDrawDivisions()
         for getSwissDrwawDivision in getSwissDrwawDivisions:
-            print(getSwissDrwawDivision)
+            print(getSwissDrwawDivision.divisionId)
+
+    def test_getFinalizedGameTime(self):
+        print("testing getting finalizedGameTime")
+        finalizedGameTime = self.instance.getFinalizeGameTime()
+        print(finalizedGameTime)
 
 
     def test_insertGame(self):
