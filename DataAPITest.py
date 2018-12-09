@@ -49,7 +49,7 @@ class TestConnectionHandling(unittest.TestCase):
     def test_getListOfGames(self):
         print("testing gettingListOfPlayedGames")
         gameStates = [GameState.COMPLETED, GameState.RUNNING]
-        self.instance.getListOfGames(divisionId_Swissdraw,8,gameStates)
+        self.instance.getListOfGames(divisionId_Swissdraw, gameStates, 8)
         print("#####################################################################")
 
     def test_getGames(self):
