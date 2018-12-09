@@ -3,6 +3,7 @@ from TournamentDescriptionClasses import Game
 from RankingGenerator import generateNewRanking
 from MatchUpGenerator import MatchUpGenerator
 from SwissGameScheduler import SwissGameScheduler
+import time
 
 api = DataAPI()
 
@@ -30,5 +31,10 @@ for divisionId in api.getSwissDrawDivisions():
     scheduler = SwissGameScheduler()
     nextGames = scheduler.maximizeGain(allGames, futureSlots, futureMatchUps)
 
+    # update games in DB
+    if api.getFinalizeGameTime() <= time.time():
+        gameState = GameState.NOT_YET_STARTED
+    else:
+        gameState = GameState.PREDICTION
     for nextGame in nextGames:
-        api.insertNextGame(nextGame, GameState.PREDICTION)
+        api.insertNextGame(nextGame, gameState)
