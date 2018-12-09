@@ -36,32 +36,42 @@ class DatabaseHandler:
         return getFinalzeGameTime
 
     ###################################################################################
-    def getListOfUpcomingSlots(self, divisionId:int, timeThreshold = None, enableMinimalRound:bool = True)->List[Slot]:
+    def getListOfUpcomingSlots(self, divisionId:int)->List[Slot]:
         if(divisionId== None or divisionId < 0):
             raise Exception()
         slots = []
-        if self.conn.is_connected():            
-            query = "SELECT slot_start AS start, slot_end AS end, location_id, slot_id, slot_round FROM slot "                        
-            if(divisionId < 0 & enableMinimalRound == True):
-                query += "WHERE slot_round = ( SELECT MIN(slot_round) FROM slot WHERE slot_start > %s)" 
-                args = (timeThreshold,)
-            elif(enableMinimalRound == True):
-               query += "WHERE slot_round = ( SELECT MIN(slot_round) FROM slot WHERE slot_start > %s  AND division_id = %s)" 
-               args = (timeThreshold,  divisionId,)    
-            elif(divisionId < 0 & enableMinimalRound==False):
-               query += " WHERE slot_start > %s" 
-               args = (timeThreshold,  ) 
-            elif(enableMinimalRound==False):
-               query += " WHERE slot_start > %s  AND division_id = %s" 
-               args = (timeThreshold,  divisionId,) 
+        excludedSlotsIds = []
+        if self.conn.is_connected():
+            round =-1;
+            excludedSlotsIds = []
+            query =     "SELECT slot.slot_round AS round, slot.slot_id AS slot_id,\
+                        game.game_completed AS game_completed, game.game_id AS game_id \
+                        FROM slot  \
+                        INNER JOIN game ON game.slot_id = slot.slot_id \
+                        WHERE game_completed = %s Order BY slot_round LIMIT 1"
+ 
+            args = (GameState.PREDICTION,)
+            try:
+                cursor = self.conn.cursor(dictionary=True)
+                cursor.execute(query,args)
+                row = cursor.fetchone() 
+                if(row != None):
+                    round = row["round"]
+            except Error as e:
+                print(e)
 
-
+            query = "SELECT slot_start AS start, slot_end AS end, location_id, slot_id, slot_round FROM slot "        
+            if(round > 0):
+                query += " WHERE slot_round = %s"
+                args = (round,)               
+            else: #hole alle slot_ids aus games und schließe diese bei der Abfrage nach slots aus 
+                query += " WHERE slot_round = (SELECT min(slot_round) FROM slot WHERE slot_id NOT IN ( SELECT slot_id FROM game WHERE slot_id IS NOT NULL)ORDER BY slot_round) "
+                args = ()  
             try:                
                 cursor = self.conn.cursor(dictionary=True)
                 cursor.execute(query, args)
                 row = cursor.fetchone() 
                 while row is not None:
-                    print(row)
                     slot = Slot(row["start"], row["end"], row["location_id"], row["slot_id"], row["slot_round"])
                     slots.append(slot)
                     row = cursor.fetchone()              

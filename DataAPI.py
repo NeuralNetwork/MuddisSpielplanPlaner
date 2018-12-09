@@ -45,7 +45,7 @@ class DataAPI(object):
         """
         return self.databaseHandler.getListOfAllTeams(divisionId)
 
-    def getListOfUpcomingSlots(self,divisionId, timeThreshold:int = None)->List[Slot]:
+    def getListOfUpcomingSlots(self,divisionId)->List[Slot]:
         """" getListOfUpcomingSlots returns a list of all slots beeing later than timeThreshhold
         getListOfUpcomingSlots(self, timeThreshold:int = None, divisionId = None)
 
@@ -66,7 +66,7 @@ class DataAPI(object):
         list
             a list of Slots taking place after time threshold in division with divisionId
         """
-        return self.databaseHandler.getListOfUpcomingSlots(divisionId, timeThreshold)
+        return self.databaseHandler.getListOfUpcomingSlots(divisionId)
 
     
     def getListOfGames(self, divisionId, gameState:GameState = GameState.COMPLETED, locationId:int = None)->List[Game]:
