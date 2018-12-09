@@ -4,6 +4,7 @@ import mysql.connector
 from mysql.connector import MySQLConnection,Error
 from TournamentDescriptionClasses import Slot, Team, MatchUp, Game, Result, Division, Location
 from scoreboardDescriptionClasses import ScoreboardText
+from GameState import GameState
 import time
 from typing import List
 

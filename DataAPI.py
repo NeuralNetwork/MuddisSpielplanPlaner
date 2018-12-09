@@ -1,14 +1,11 @@
 from DatabaseHandler import DatabaseHandler
 from TournamentDescriptionClasses import Game, Team, Slot, Result, MatchUp, Division, Location
 from scoreboardDescriptionClasses import ScoreboardText
+from GameState import GameState
 from typing import List
 
 
-class GameState:
-    NOT_YET_STARTED = 0
-    COMPLETED = 1
-    RUNNING = 2
-    PREDICTION = 3
+
 
 
 class DataAPI(object):
