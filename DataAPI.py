@@ -22,7 +22,7 @@ class DataAPI(object):
         """ disconnect from data source"""
         del self.databaseHandler
      
-    def getListOfAllTeams(self, divison_id = None)->List[Team]:
+    def getListOfAllTeams(self, divisonId = None)->List[Team]:
         """" getListOfAllTeams  gets all Teams (of division) stored in data source
          getListOfAllTeams(self, divison_id = None)
          
@@ -30,14 +30,14 @@ class DataAPI(object):
         ----------
         divisionId : int, optional            
             if no divisionId is given swiss draw division will be used (max one divison in database)
-            passing negeive values will lead to all division Slots as result
+            passing negative values will lead to all division Slots as result
 
         Returns
         -------
         list
             a list of all Teams (of a division)
         """
-        return self.databaseHandler.getListOfAllTeams()
+        return self.databaseHandler.getListOfAllTeams(divisonId)
 
     def getListOfUpcomingSlots(self, timeThreshold:int = None, divisionId = None)->List[Slot]:
         """" getListOfUpcomingSlots returns a list of all slots beeing later than timeThreshhold
