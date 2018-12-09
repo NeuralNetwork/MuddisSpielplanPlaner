@@ -1,5 +1,7 @@
 import unittest
-from DataAPI import DataAPI, GameState
+
+from DataAPI import DataAPI
+from GameState import GameState
 from TournamentDescriptionClasses import Slot, MatchUp, Result, Game, Team, Location 
 import time
 
@@ -46,7 +48,8 @@ class TestConnectionHandling(unittest.TestCase):
 
     def test_getListOfGames(self):
         print("testing gettingListOfPlayedGames")
-        self.instance.getListOfGames(divisionId_Swissdraw)
+        gameStates = [GameState.COMPLETED, GameState.RUNNING]
+        self.instance.getListOfGames(divisionId_Swissdraw,8,gameStates)
         print("#####################################################################")
 
     def test_getGames(self):

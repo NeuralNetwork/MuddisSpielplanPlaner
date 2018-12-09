@@ -88,11 +88,13 @@ class DatabaseHandler:
 
 
     ###################################################################################
-    def getListOfGames(self,divisionId:int, gameState:GameState = 1, locationId:int = None)->List[Game]:
+    def getListOfGames(self,divisionId:int, gameStates:List[GameState], locationId:int = None)->List[Game]:
         if(divisionId== None or divisionId < 0):
             raise Exception()
         if locationId == None:
             locationId = -1
+        if(len(gameStates) <= 0):
+            gameStates = [GameState.NOT_YET_STARTED, GameState.COMPLETED, GameState.RUNNING , GameState.PREDICTION]
 
         print(locationId)
         games = []
@@ -115,10 +117,10 @@ class DatabaseHandler:
             if(locationId >= 0 ):
                 query += "AND location.location_id = %s "   
                 query += "ORDER BY " + orderBy                
-                args = (gameState, locationId, )             
+                args = (gameStates[0], locationId, )             
             else:                     
                 query += "ORDER BY " + orderBy   
-                args = (gameState,) 
+                args = (gameStates[0],) 
 
 
             try:                

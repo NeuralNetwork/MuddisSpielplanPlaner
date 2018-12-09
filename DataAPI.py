@@ -69,7 +69,7 @@ class DataAPI(object):
         return self.databaseHandler.getListOfUpcomingSlots(divisionId)
 
     
-    def getListOfGames(self, divisionId, gameState:GameState = GameState.COMPLETED, locationId:int = None)->List[Game]:
+    def getListOfGames(self, divisionId, gameStates:List[GameState], locationId:int = None)->List[Game]:
         """ getListOfGame gets a list of games stored in data source
         getListOfGames(self, gameState = GameState.COMPLETED, locationId:int = None, divisionId = None)
 
@@ -92,7 +92,8 @@ class DataAPI(object):
         list
             a list of games either played or not played yet
         """
-        return self.databaseHandler.getListOfGames(divisionId, gameState, locationId)
+        gameStates = [GameState.COMPLETED, GameState.RUNNING]
+        return self.databaseHandler.getListOfGames(divisionId, gameStates, locationId)
 
     def getListOfLocations(self)->List[Location]:
         """ getListOfGame gets a list of games stored in data source
