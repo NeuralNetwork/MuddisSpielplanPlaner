@@ -55,6 +55,7 @@ class Context:
             raise Exception('{0} not found in file \"{1}\"'.format(section, self.dbConfigPath))
 
 
+# all Ids in the database start at 1
 class Generator:
     def __init__(self):
         self.ctx = Context()
@@ -78,9 +79,13 @@ class Generator:
         # insert data into tables
         self._fillDivisions()
 
-        # TODO insert times when predictions are made fix
-        # TODO insert slots (with adjustable length)
-        # TODO insert games of first round for all divisions
+        self._fillTeams()
+        self._fillRankings()
+        self._fillMatchups()
+        self._fillRounds()
+        self._fillLocations()
+        self._fillSlots()
+        self._fillGames()
 
         # TODO start simulated result entry job
         # TODO start schedule job
@@ -104,14 +109,18 @@ class Generator:
         self.cursor.execute("USE " + self.ctx.dbName)
 
     def _insert(self, table: str, data):
-        query = "INSERT INTO `" + table + "` VALUES ("
-        assert(len(data) > 0)
-        for value in data[0]:
-            query += "%s, "
-        query = query[0:-2] # drop trailing ',', or else MySQL will mimimi
-        query += ")"
-        for item in data:
-            self.cursor.execute(query, item)
+        try:
+            self._lockTable(table)
+            query = "INSERT INTO `" + table + "` VALUES ("
+            assert(len(data) > 0)
+            for value in data[0]:
+                query += "%s, "
+            query = query[0:-2]  # drop trailing ',', or else MySQL will mimimi
+            query += ")"
+            for item in data:
+                self.cursor.execute(query, item)
+        finally:
+            self._unlockTables()
 
     def _doBasicSetup(self):
         setupFile = open("./setupDB.sql")
@@ -121,21 +130,74 @@ class Generator:
 
 
     def _fillDivisions(self):
-        try:
-            table = "division"
-            data = list()
-            for index, divisionData in enumerate(self.ctx.divisions):
-                division = divisionData[0]
-                acronym = division[0:min(3, len(division))]
-                color = "#ff8000"
-                optimized = 1 # 1: swiss game scheduler will be applied
-                data.append((index+1, division, acronym, color, optimized))
+        table = "division"
+        data = list()
+        for index, divisionData in enumerate(self.ctx.divisions, 1):
+            division = divisionData[0]
+            acronym = division[0:min(3, len(division))]
+            color = "#ff8000"
+            optimized = 1 # 1: swiss game scheduler will be applied
+            data.append((index, division, acronym, color, optimized))
+        self._insert(table, data)
 
-            self._lockTable(table)
-            self._insert(table, data)
-        finally:
-            self._unlockTables()
+    def _fillTeams(self):
+        table = "team"
+        data = list()
+        offsetTeamId = 1
+        for divisionId, division in enumerate(self.ctx.divisions, 1):
+            maxTeamId = division[1]
+            for teamId in range(offsetTeamId, offsetTeamId + maxTeamId):
+                name = str(teamId) + "_" + str(divisionId)
+                acronym = str(teamId)
+                color = "#00ff00"
+                data.append((teamId, divisionId, name, acronym, color))
+            offsetTeamId += maxTeamId
+        self._insert(table, data)
 
+    def _fillRankings(self):
+        table = "ranking"
+        data = list()
+        offsetTeamId = 1
+        for division in self.ctx.divisions:
+            maxTeamId = division[1]
+            rank = 0
+            for teamId in range(offsetTeamId, offsetTeamId + maxTeamId):
+                rankingId = teamId
+                roundIndex = 0
+                data.append((rankingId, teamId, rank, roundIndex))
+                rank += 1
+            offsetTeamId += maxTeamId
+        self._insert(table, data)
+
+    def _fillMatchups(self):
+        table = "matchup"
+        data = list()
+        offsetMatchupId = 1
+        for division in self.ctx.divisions:
+            maxMatchupId = int(division[1] / 2)
+            for matchupId in range(offsetMatchupId, offsetMatchupId + maxMatchupId):
+                teamId1 = (matchupId * 2) - 1
+                teamId2 = teamId1 + 1
+                # the score should be irrelevant for integration testing
+                score1 = 10
+                score2 = 10
+                timeouts1 = 0
+                timeouts2 = 0
+                data.append((matchupId, teamId1, teamId2, score1, score2, timeouts1, timeouts2))
+            offsetMatchupId += maxMatchupId
+        self._insert(table, data)
+
+    def _fillRounds(self):
+        pass
+
+    def _fillLocations(self):
+        pass
+
+    def _fillSlots(self):
+        pass
+
+    def _fillGames(self):
+        pass
 
 generator = Generator()
 generator.createDB()
