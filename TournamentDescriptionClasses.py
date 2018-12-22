@@ -19,13 +19,15 @@ class Slot:
             return self.start - other.end
 
     def toString(self):
-       return (str(self.slotId) + "; Start: " + str(self.start) + ", End: " + str(self.end) + ", Round: " + str(self.round) + ", LocationId: " + str(self.locationId) )
+       return str(self.slotId) + "; Start: " + str(self.start) + ", End: " + str(self.end) + ", Round: " + str(self.round) + ", LocationId: " + str(self.locationId)
+
 
 class Team:
-    def __init__(self, name: str, acronym: str, teamId: int = -1):
+    def __init__(self, name: str, acronym: str = "", teamId: int = -1, seed: int = -1):
         self.name = name
         self.acronym = acronym
         self.teamId = teamId
+        self.seed = seed
 
     def __eq__(self, other):
         return self.name == other.name and self.acronym == other.acronym and self.teamId == other.teamId
@@ -34,7 +36,8 @@ class Team:
         return hash(self.name) + hash(self.acronym) + hash(self.teamId)
 
     def toString(self):
-       return (str(self.teamId) + "; Name: " + self.name + ", Acronym" + self.acronym )
+       return str(self.teamId) + "; Teamname: " + self.name + ", Acronym" + self.acronym + ", Teamseed: " + self.seed
+
 
 class MatchUp:
     """ matchup between two teams
@@ -47,8 +50,9 @@ class MatchUp:
     def toString(self):
        return (str(self.matchupId) + "; Teams: " + self.first.toString() + ":" + self.second.toString() )
 
+
 class Result:
-    def __init__(self,resultId: int, resultA: int , resultB: int ,  timeoutsA:int = 0, timeoutsB:int= 0):
+    def __init__(self, resultId: int, resultA: int , resultB: int ,  timeoutsA:int = 0, timeoutsB:int= 0):
         self.first = resultA
         self.second = resultB
         self.firstTo = timeoutsA
@@ -57,6 +61,7 @@ class Result:
 
     def toString(self):
        return (str(self.resultId) + "; Score: " + str(self.first) + ":" + str(self.second) + " Timeouts: " + str(self.firstTo) + ":" + str(self.secondTo))
+
 
 class Game:
     def __init__(self, matchup:MatchUp = None, result:Result = None, slot:Slot = None, gameId=None):
@@ -85,6 +90,7 @@ class Division:
 
     def toString(self):
         return (str(self.divisionId) + " " + self.name + " " + self.acronym)
+
 
 class Location:
     def __init__(self, locationId, name, description = "", color =""):

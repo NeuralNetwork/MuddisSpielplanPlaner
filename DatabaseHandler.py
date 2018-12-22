@@ -163,29 +163,27 @@ class DatabaseHandler:
 
         return games
 
-
-######################################################################################
+    ######################################################################################
 
     def getListOfAllTeams(self, divisionId:int)->List[Team]:
-        if(divisionId== None or divisionId < 0):
+        if divisionId is None or divisionId < 0:
             raise ValueError("divisionId must not be None nor negative")
 
         teams = []
         if self.conn.is_connected():             
-            query = "SELECT team_id, team_name, team_acronym FROM team "    
+            query = "SELECT team_id, team_name, team_acronym, team_seed FROM team "
             query += "WHERE division_id = %s "                
             args = (divisionId,) 
 
             try:                
                 cursor = self.conn.cursor(dictionary=True)    
-                if(args == None):
+                if args is None:
                     cursor.execute(query)
                 else:
                     cursor.execute(query, args)
                 row = cursor.fetchone() 
                 while row is not None:
-                    #print(row)
-                    team =Team (row["team_name"], row["team_acronym"], row["team_id"])
+                    team = Team(row["team_name"], row["team_acronym"], row["team_id"], row["team_seed"])
                     teams.append(team)
                     row = cursor.fetchone()              
  
@@ -197,7 +195,6 @@ class DatabaseHandler:
         else:
             raise NoDatabaseConnection()
         return teams
-
 
     def getSwissDrawDivisions(self)->List[Division]:
         divisions = []
@@ -222,7 +219,6 @@ class DatabaseHandler:
         else:
             raise NoDatabaseConnection()
         return divisions
-
 
     def getListOfLocations(self)->List[Location]:
         locations = []
@@ -282,6 +278,44 @@ class DatabaseHandler:
  
         finally:
             cursor.close()
+
+        return status
+
+    def insertNextGames(self, games: [Game], gamestate: GameState, debug: int = 0)->bool:
+        status = True
+
+        matchupQuery = "INSERT INTO matchup(matchup_team1_id ,matchup_team2_id) " \
+                       "VALUES(%s,%s)"
+        gameQuery = "REPLACE INTO game(matchup_id ,slot_id, game_state) " \
+                    "VALUES(%s,%s,%s) "
+        try:
+            for game in games:
+                self.conn.autocommit = False
+                cursor = self.conn.cursor()
+
+                matchupArgs = (game.matchup.first.teamId, game.matchup.second.teamId)
+                cursor.execute(matchupQuery, matchupArgs)
+
+                if not cursor.lastrowid:
+                    raise ValueError("no last inserted id found")
+
+                gameArgs = (cursor.lastrowid, game.slot.slotId, gamestate,)
+                cursor.execute(gameQuery, gameArgs)
+
+            if debug == 0:
+                self.conn.commit()
+            else:
+                print("Rollback")
+                self.conn.rollback()
+
+        except Error as error:
+            self.conn.rollback()
+            status = False
+            print(error)
+
+        finally:
+            if self.conn.is_connected():
+                cursor.close()
 
         return status
 

@@ -30,7 +30,6 @@ class TestConnectionHandling(unittest.TestCase):
             print(slot.toString())
         self.assertGreater(len(slots), 0)
 
-        
     def test_getListOfAllTeams(self):
         print("testing getting list of all teams")
         teams = self.instance.getListOfAllTeams(divisionId_Swissdraw)
@@ -76,7 +75,7 @@ class TestConnectionHandling(unittest.TestCase):
         print(finalizedGameTime)
 
     def test_insertGame(self):
-        print("########## testing inserting next games ############")
+        print("########## testing inserting next game ############")
         teams = self.instance.getListOfAllTeams(divisionId_Swissdraw)  # get a list of teams
         result = Result(-1, 0, 0, 0, 0)   # set a result
         slots = self.instance.getListOfSlotsOfUpcomingRound(divisionId_Swissdraw)  # get upcompiung slots
@@ -85,6 +84,22 @@ class TestConnectionHandling(unittest.TestCase):
             game: Game = Game(matchup, result, slots[0])  # set up game with matchup, result, and the first slot
             self.instance.insertNextGame(game, GameState.COMPLETED, 1)  # insert nextgames in debug mode (no real insertion in db). don' use second parameter for productive system
         print("no available Slots found")
+
+    def test_insertGames(self):
+        print("########## testing inserting next games ############")
+        teams = self.instance.getListOfAllTeams(divisionId_Swissdraw)  # get a list of teams
+        result = Result(-1, 0, 0, 0, 0)  # set a result
+        slots = self.instance.getListOfSlotsOfUpcomingRound(divisionId_Swissdraw)  # get upcompiung slots
+        if len(slots) > 0:
+            matchup = MatchUp(teams[0], teams[1])  # set up matchups with 2 (random, the first 2) teams from all teams
+            games=[];
+            for x in range(3):
+                game: Game = Game(matchup, result, slots[0])  # set up game with matchup, result, and the first slot
+                games.append(game)
+            print(self.instance.insertNextGames(games, GameState.COMPLETED,
+                                         1))  # insert nextgames in debug mode (no real insertion in db). don' use second parameter for productive system
+        else:
+            print("no available Slots found")
 
     @classmethod    
     def tearDownClass(self):

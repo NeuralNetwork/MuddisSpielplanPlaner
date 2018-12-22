@@ -135,7 +135,28 @@ class DataAPI(object):
             True if inserted
             False if not
         """        
-        return self.databaseHandler.insertNextGame(game,gamestate,debug)
+        return self.databaseHandler.insertNextGame(game, gamestate, debug)
+
+    def insertNextGames(self, games: [Game], gamestate: GameState, debug: int = 0):
+        """" insertNextGame inserts a game in db
+        insertNextGame(self, game:Game = None, debug:int = 0)
+
+        If the argument `debug` isn't passed in, the default is no debug
+
+        Parameters
+        ----------
+        game : Game, optional
+            game from type Game. Will be inserted in db
+        debug : int, optional
+            if no debug is given it will be in productive mode
+
+        Returns
+        -------
+        bool
+            True if inserted
+            False if not
+        """
+        return self.databaseHandler.insertNextGames(games, gamestate, debug)
 
 
     
