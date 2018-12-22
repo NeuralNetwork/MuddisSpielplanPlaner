@@ -1,7 +1,7 @@
 from DatabaseHandler import DatabaseHandler
 from TournamentDescriptionClasses import Game, Team, Slot, Result, MatchUp, Division, Location
 from ScoreboardDescriptionClasses import ScoreboardText
-from GameState import GameState
+from States import GameState
 from typing import List
 
 
@@ -25,8 +25,8 @@ class DataAPI(object):
     def getSwissDrawDivisions(self):        
         return self.databaseHandler.getSwissDrawDivisions()
 
-    def getFinalizeGameTime(self):
-        return self.databaseHandler.getFinalzeGameTime()
+    def getFinalizeGameTime(self, round_number: int, divisionId: int):
+        return self.databaseHandler.getFinalzeGameTime(round_number, divisionId)
      
     def getListOfAllTeams(self, divisionId)->List[Team]:
         """" getListOfAllTeams  gets all Teams (of division) stored in data source
@@ -45,28 +45,23 @@ class DataAPI(object):
         """
         return self.databaseHandler.getListOfAllTeams(divisionId)
 
-    def getListOfUpcomingSlots(self,divisionId)->List[Slot]:
-        """" getListOfUpcomingSlots returns a list of all slots beeing later than timeThreshhold
-        getListOfUpcomingSlots(self, timeThreshold:int = None, divisionId = None)
+    def getListOfSlotsOfUpcomingRound(self, divisionId)->List[Slot]:
+        """" getListOfUpcomingSlots returns a list of all slots beeing in next round
+        getListOfSlotsOfUpcomingRound(self, divisionId = None)
 
-        If the argument `timeThreshold` isn't passed in, the default time threshold is used.
         If the argument `division` isn't passed in, the default division is used.
 
         Parameters
         ----------
-        timeThreshold : int, optional
-            unix-timestamp (seconds since 1970)
-            if no timeThreshold is given threshold will be now
-        divisionId : int, optional            
-            if no divisionId is given swiss draw division will be used (max one division in database)
-            passing negeive values will lead to all division Slots as result
+        divisionId : int, optional
+            if no divisionId is given, an Value Exception will be raised
 
         Returns
         -------
         list
-            a list of Slots taking place after time threshold in division with divisionId
+            a list of Slots taking place in next round in division with divisionId
         """
-        return self.databaseHandler.getListOfUpcomingSlots(divisionId)
+        return self.databaseHandler.getListOfSlotsOfUpcomingRound(divisionId)
 
     
     def getListOfGames(self, divisionId, gameStates:List[GameState], locationId:int = None)->List[Game]:
@@ -92,7 +87,7 @@ class DataAPI(object):
         list
             a list of games either played or not played yet
         """
-        gameStates = [GameState.COMPLETED, GameState.RUNNING]
+        #gameStates = [GameState.COMPLETED, GameState.RUNNING]
         return self.databaseHandler.getListOfGames(divisionId, gameStates, locationId)
 
     def getListOfLocations(self)->List[Location]:
@@ -140,27 +135,52 @@ class DataAPI(object):
             True if inserted
             False if not
         """        
-        return self.databaseHandler.insertNextGame(game,gamestate,debug)
+        return self.databaseHandler.insertNextGame(game, gamestate, debug)
 
-    def getScoreboardTexts(self, location:Location = None, timeThreshold = None)->List[ScoreboardText]:
-        """" getScoreboardTexts returns Scoreboardtexts from database
-        getScoreboardTexts(self, location:Location = None, timeThreshold = None)
+    def insertNextGames(self, games: [Game], gamestate: GameState, debug: int = 0):
+        """" insertNextGame inserts a game in db
+        insertNextGame(self, game:Game = None, debug:int = 0)
 
-        If the argument `location` isn't passed in, the default are all locations
-        If the argument `timeThreshold` isn't passed in, the default is now as timestamp
-
+        If the argument `debug` isn't passed in, the default is no debug
 
         Parameters
         ----------
-        location : Location, optional
-            location shows for what location the scoreboard text is asked for
-        timeThreshold : int, optional            
-            timeThreshold is a timestamp. Funtion returns only scoreboardtexts ending after that threshold 
+        game : Game, optional
+            game from type Game. Will be inserted in db
+        debug : int, optional
+            if no debug is given it will be in productive mode
 
         Returns
         -------
-        ScoreboardText             
-        """        
-        return  self.databaseHandler.getScoreboardTexts( location , timeThreshold )
+        bool
+            True if inserted
+            False if not
+        """
+        return self.databaseHandler.insertNextGames(games, gamestate, debug)
+
+    def insertRanking(self, ranked_teamlist: [Team], round_number: int, division_id: int, debug: int = 0):
+        """" insertRanking inserts a ranking for a specific round
+                insertRanking(self, ranked_teamlist: [Team], round_number: int):
+
+                If the argument `debug` isn't passed in, the default is no debug
+
+                Parameters
+                ----------
+                ranked_teamlist : List of Teams
+                    ranked_teamlist from type [Team]. Will be inserted in db.
+                    ranked_teamlist is a sorted List of Teams. Best team first, worst team last
+                debug : int, optional
+                    if no debug is given it will be in productive mode
+
+                Returns
+                -------
+                bool
+                    True if inserted
+                    False if not
+                """
+        return self.databaseHandler.insertRanking(ranked_teamlist, round_number, division_id, debug)
+
+
+
     
 
