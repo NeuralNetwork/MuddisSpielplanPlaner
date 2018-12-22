@@ -18,7 +18,7 @@ class TestConnectionHandling(unittest.TestCase):
 
     def test_getListOfSlots(self):
         print("Testing getting list of upcoming slots")
-        slots = self.instance.getListOfUpcomingSlots()
+        slots = self.instance.getListOfSlotsOfUpcomingRound()
         for slot in slots:
             start = minutesToTime(slot.start)
             end = minutesToTime(slot.end)

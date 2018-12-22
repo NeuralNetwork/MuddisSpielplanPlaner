@@ -1,7 +1,7 @@
 from DatabaseHandler import DatabaseHandler
 from TournamentDescriptionClasses import Game, Team, Slot, Result, MatchUp, Division, Location
 from ScoreboardDescriptionClasses import ScoreboardText
-from GameState import GameState
+from States import GameState
 from typing import List
 
 
@@ -45,28 +45,23 @@ class DataAPI(object):
         """
         return self.databaseHandler.getListOfAllTeams(divisionId)
 
-    def getListOfUpcomingSlots(self,divisionId)->List[Slot]:
-        """" getListOfUpcomingSlots returns a list of all slots beeing later than timeThreshhold
-        getListOfUpcomingSlots(self, timeThreshold:int = None, divisionId = None)
+    def getListOfSlotsOfUpcomingRound(self, divisionId)->List[Slot]:
+        """" getListOfUpcomingSlots returns a list of all slots beeing in next round
+        getListOfSlotsOfUpcomingRound(self, divisionId = None)
 
-        If the argument `timeThreshold` isn't passed in, the default time threshold is used.
         If the argument `division` isn't passed in, the default division is used.
 
         Parameters
         ----------
-        timeThreshold : int, optional
-            unix-timestamp (seconds since 1970)
-            if no timeThreshold is given threshold will be now
-        divisionId : int, optional            
-            if no divisionId is given swiss draw division will be used (max one division in database)
-            passing negeive values will lead to all division Slots as result
+        divisionId : int, optional
+            if no divisionId is given, an Value Exception will be raised
 
         Returns
         -------
         list
-            a list of Slots taking place after time threshold in division with divisionId
+            a list of Slots taking place in next round in division with divisionId
         """
-        return self.databaseHandler.getListOfUpcomingSlots(divisionId)
+        return self.databaseHandler.getListOfSlotsOfUpcomingRound(divisionId)
 
     
     def getListOfGames(self, divisionId, gameStates:List[GameState], locationId:int = None)->List[Game]:

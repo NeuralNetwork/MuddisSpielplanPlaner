@@ -19,7 +19,7 @@ class Slot:
             return self.start - other.end
 
     def toString(self):
-       return (str(self.slotId) + "; Start: " + str(self.start) + ", End" + str(self.end) + ", Round" + str(self.round) + ", LocationId" + str(self.locationId) )
+       return (str(self.slotId) + "; Start: " + str(self.start) + ", End: " + str(self.end) + ", Round: " + str(self.round) + ", LocationId: " + str(self.locationId) )
 
 class Team:
     def __init__(self, name: str, acronym: str, teamId: int = -1):

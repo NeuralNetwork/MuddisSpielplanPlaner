@@ -1,10 +1,10 @@
 import os
 from configparser import ConfigParser
 import mysql.connector 
-from mysql.connector import MySQLConnection,Error
+from mysql.connector import MySQLConnection, Error
 from TournamentDescriptionClasses import Slot, Team, MatchUp, Game, Result, Division, Location
 from ScoreboardDescriptionClasses import ScoreboardText
-from GameState import GameState
+from States import GameState, RoundState
 import time
 from typing import List
 
@@ -24,7 +24,7 @@ class DatabaseHandler:
             self.disconnect()
 
     ###################################################################################
-    def getFinalzeGameTime(self):
+    def getFinalzeGameTime(self, round:int)->int:
         if self.conn.is_connected():   
             query = "SELECT finalizeGameScheduleTime_time FROM finalizegamescheduletime LIMIT 1"           
             cursor = self.conn.cursor(dictionary=True)
@@ -36,55 +36,80 @@ class DatabaseHandler:
         return getFinalzeGameTime
 
     ###################################################################################
-    def getListOfUpcomingSlots(self, divisionId:int)->List[Slot]:
-        if(divisionId== None or divisionId < 0):
-            raise Exception()
+    def getListOfSlotsOfUpcomingRound(self, divisionId:int)->List[Slot]:
+        if divisionId is None or divisionId < 0:
+            raise ValueError("division id must not be None")
+        round_number = -1
+        slot_ids = []
         slots = []
-        excludedSlotsIds = []
+        swissdraw_game = 1
         if self.conn.is_connected():
-            round =-1;
-            excludedSlotsIds = []
-            query =     "SELECT slot.slot_round AS round, slot.slot_id AS slot_id,\
-                        game.game_completed AS game_completed, game.game_id AS game_id \
-                        FROM slot  \
-                        INNER JOIN game ON game.slot_id = slot.slot_id \
-                        WHERE game_completed = %s Order BY slot_round LIMIT 1"
- 
-            args = (GameState.PREDICTION,)
+            #Finde slots der nächsten runde
+            # 1. finde games mit dem state not_yet_started + division
+            # 2. lies die größte Runde der gefundenen Games aus
+            # 3. nimm die nächst größere Runde
+            # 4. gib die slots der nächst größeren Runde zurück.
+            #get round number of predicted round
+            query = "SELECT round.round_number AS round_number, slot.slot_id AS slot_id, round.round_state AS round_state \
+                        FROM slot \
+                        INNER JOIN round ON round.round_id = slot.round_id  \
+                        WHERE round.division_id = %s AND round.round_swissdrawGames = %s\
+                        ORDER BY round.round_number DESC"
+            args = (divisionId, swissdraw_game,)
+            print(query)
             try:
                 cursor = self.conn.cursor(dictionary=True)
-                cursor.execute(query,args)
-                row = cursor.fetchone() 
-                if(row != None):
-                    round = row["round"]
+                cursor.execute(query, args)
+                row = cursor.fetchone()
+                while row is not None:
+                    if row["round_state"] == RoundState.PREDICTION:
+                        round_number = row["round_number"] if (row["round_number"] >= 0) else round_number
+                    slot_ids.append(row["slot_id"])
+                    row = cursor.fetchone()
             except Error as e:
                 print(e)
 
-            query = "SELECT slot_start AS start, slot_end AS end, location_id, slot_id, slot_round FROM slot "        
-            if(round > 0):
-                query += " WHERE slot_round = %s"
-                args = (round,)               
-            else: #hole alle slot_ids aus games und schließe diese bei der Abfrage nach slots aus 
-                query += " WHERE slot_round = (SELECT min(slot_round) FROM slot WHERE slot_id NOT IN ( SELECT slot_id FROM game WHERE slot_id IS NOT NULL)ORDER BY slot_round) "
-                args = ()  
-            try:                
+            # Query to get Slots From slot
+            query = "SELECT slot.slot_start AS start, slot.slot_end AS end, slot.location_id, slot.slot_id, \
+                            outer_round.round_number AS round_number \
+                        FROM slot \
+                        INNER JOIN round outer_round ON outer_round.round_id = slot.round_id"
+
+            print(round_number)
+            # no predicted game - find smallest round_number of slots without games (WHERE slot_id is not in slot_ids
+            if round_number == -1:
+                query += " WHERE outer_round.division_id = %s \
+                            AND outer_round.round_swissdrawGames = %s\
+                            AND outer_round.round_number = \
+                                (SELECT min(inner_round.round_number) \
+                                    FROM slot \
+                                    INNER JOIN round inner_round ON slot.round_id = inner_round.round_id \
+                                    WHERE slot_id NOT IN (SELECT slot_id FROM game WHERE slot_id IS NOT NULL)\
+                                    ORDER BY inner_round.round_number) "
+                args = (divisionId, swissdraw_game,)
+            else:
+                query += " WHERE outer_round.division_id = %s \
+                            AND outer_round.round_number = %s \
+                            AND outer_round.round_swissdrawGames = %s"
+                args = (divisionId, round_number, swissdraw_game,)
+
+            try:
                 cursor = self.conn.cursor(dictionary=True)
                 cursor.execute(query, args)
-                row = cursor.fetchone() 
+                row = cursor.fetchone()
                 while row is not None:
-                    slot = Slot(row["start"], row["end"], row["location_id"], row["slot_id"], row["slot_round"])
+                    slot = Slot(row["start"], row["end"], row["location_id"], row["slot_id"], row["round_number"])
                     slots.append(slot)
-                    row = cursor.fetchone()              
- 
+                    row = cursor.fetchone()
             except Error as e:
                 print(e)
- 
             finally:
-                cursor.close()       
+                    cursor.close()
         else:
             raise NoDatabaseConnection()
 
         return slots
+
 
 
     ###################################################################################
@@ -94,11 +119,14 @@ class DatabaseHandler:
         if locationId == None:
             locationId = -1
         if(len(gameStates) <= 0):
-            gameStates = [GameState.NOT_YET_STARTED, GameState.COMPLETED, GameState.RUNNING , GameState.PREDICTION]
+            gameStates = [GameState.NOT_YET_STARTED, GameState.COMPLETED, GameState.RUNNING, GameState.PREDICTION]
 
         print(locationId)
         games = []
-        if self.conn.is_connected():     
+        if self.conn.is_connected():   
+            
+            format_strings = ','.join(['%s'] * len(gameStates)) 
+            print(tuple(gameStates,))    
             query =     "SELECT slot.slot_start AS start, slot.slot_end AS end, slot.slot_id AS slot_id, slot.slot_round AS slot_round, slot.division_id,\
                             location.location_name AS location_name, location.location_description AS location_description, location.location_id AS location_id, \
                             team1.team_name AS team1_name, team1.team_id AS team1_id, team1.team_acronym AS team1_acronym, \
@@ -111,16 +139,16 @@ class DatabaseHandler:
                         INNER JOIN matchup ON game.matchup_id = matchup.matchup_id \
                         INNER JOIN team AS team1 ON matchup_team1_id = team1.team_id \
                         INNER JOIN team AS team2 ON matchup_team2_id = team2.team_id \
-                        WHERE game_completed = %s "
+                        WHERE game_completed IN  %s " % format_strings,
 
             orderBy = "start"
             if(locationId >= 0 ):
-                query += "AND location.location_id = %s "   
-                query += "ORDER BY " + orderBy                
-                args = (gameStates[0], locationId, )             
+               # query += "AND location.location_id = %s "   
+                #query += "ORDER BY " + orderBy                
+                args = (tuple(gameStates), locationId, )             
             else:                     
-                query += "ORDER BY " + orderBy   
-                args = (gameStates[0],) 
+                #query += " ORDER BY " + orderBy + ""                 
+                args = (tuple(gameStates),) 
 
 
             try:                

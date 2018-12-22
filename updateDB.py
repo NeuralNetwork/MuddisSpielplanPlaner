@@ -24,7 +24,7 @@ for divisionId in api.getSwissDrawDivisions():
 
     # schedule games
     futureSlots = []
-    for slot in api.getListOfUpcomingSlots(divisionId=divisionId):
+    for slot in api.getListOfSlotsOfUpcomingRound(divisionId=divisionId):
         futureSlots.append(Game(None, None, slot))
 
     #TODO do something sensible if there are no games to be scheduled
