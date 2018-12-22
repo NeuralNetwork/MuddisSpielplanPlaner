@@ -12,6 +12,7 @@ from typing import List
 class NoDatabaseConnection(Exception):
     pass
 
+
 class DatabaseHandler:    
     module_dir = os.path.dirname(__file__)
 
@@ -24,39 +25,38 @@ class DatabaseHandler:
             self.disconnect()
 
     ###################################################################################
-    def getFinalzeGameTime(self, round:int)->int:
+    def getFinalzeGameTime(self, round_number: int)->int:
+        if round_number is None or round_number < 0:
+            raise ValueError("round_number must not be None nor negative")
         if self.conn.is_connected():   
-            query = "SELECT finalizeGameScheduleTime_time FROM finalizegamescheduletime LIMIT 1"           
+            query = "SELECT round_fixnextgametime FROM round WHERE round.round_number = %s LIMIT 1"
+            args = (round_number,)
             cursor = self.conn.cursor(dictionary=True)
-            cursor.execute(query)
+            cursor.execute(query, args)
             row = cursor.fetchone() 
-            getFinalzeGameTime = row["finalizeGameScheduleTime_time"]
+            getFinalzeGameTime = row["round_fixnextgametime"]
         else:
             raise NoDatabaseConnection()
         return getFinalzeGameTime
 
     ###################################################################################
-    def getListOfSlotsOfUpcomingRound(self, divisionId:int)->List[Slot]:
+    def getListOfSlotsOfUpcomingRound(self, divisionId: int)->List[Slot]:
         if divisionId is None or divisionId < 0:
-            raise ValueError("division id must not be None")
+            raise ValueError("divisionId must not be None nor negative")
         round_number = -1
-        slot_ids = []
         slots = []
         swissdraw_game = 1
         if self.conn.is_connected():
-            #Finde slots der nächsten runde
-            # 1. finde games mit dem state not_yet_started + division
-            # 2. lies die größte Runde der gefundenen Games aus
-            # 3. nimm die nächst größere Runde
-            # 4. gib die slots der nächst größeren Runde zurück.
+            #Find slotsof next round
+            #Either find predicted round or find lowest round number of slots without games
             #get round number of predicted round
-            query = "SELECT round.round_number AS round_number, slot.slot_id AS slot_id, round.round_state AS round_state \
+            query = "SELECT round.round_number AS round_number, round.round_state AS round_state \
                         FROM slot \
                         INNER JOIN round ON round.round_id = slot.round_id  \
                         WHERE round.division_id = %s AND round.round_swissdrawGames = %s\
-                        ORDER BY round.round_number DESC"
+                        ORDER BY round.round_number ASC"
             args = (divisionId, swissdraw_game,)
-            print(query)
+
             try:
                 cursor = self.conn.cursor(dictionary=True)
                 cursor.execute(query, args)
@@ -64,7 +64,6 @@ class DatabaseHandler:
                 while row is not None:
                     if row["round_state"] == RoundState.PREDICTION:
                         round_number = row["round_number"] if (row["round_number"] >= 0) else round_number
-                    slot_ids.append(row["slot_id"])
                     row = cursor.fetchone()
             except Error as e:
                 print(e)
@@ -75,8 +74,7 @@ class DatabaseHandler:
                         FROM slot \
                         INNER JOIN round outer_round ON outer_round.round_id = slot.round_id"
 
-            print(round_number)
-            # no predicted game - find smallest round_number of slots without games (WHERE slot_id is not in slot_ids
+            # no predicted game - find smallest round_number of slots without games (WHERE slot_id is not in slot_ids)
             if round_number == -1:
                 query += " WHERE outer_round.division_id = %s \
                             AND outer_round.round_swissdrawGames = %s\
@@ -110,59 +108,48 @@ class DatabaseHandler:
 
         return slots
 
-
-
     ###################################################################################
-    def getListOfGames(self,divisionId:int, gameStates:List[GameState], locationId:int = None)->List[Game]:
+
+    def getListOfGames(self, divisionId: int, gameStates: List[GameState], locationId: int = None)->List[Game]:
+
         if(divisionId== None or divisionId < 0):
-            raise Exception()
+            raise ValueError("divisionId must not be None nor negative")
         if locationId == None:
             locationId = -1
         if(len(gameStates) <= 0):
-            gameStates = [GameState.NOT_YET_STARTED, GameState.COMPLETED, GameState.RUNNING, GameState.PREDICTION]
+            gameStates = [GameState.NOT_YET_STARTED, GameState.COMPLETED, GameState.RUNNING]
 
-        print(locationId)
         games = []
-        if self.conn.is_connected():   
-            
-            format_strings = ','.join(['%s'] * len(gameStates)) 
-            print(tuple(gameStates,))    
-            query =     "SELECT slot.slot_start AS start, slot.slot_end AS end, slot.slot_id AS slot_id, slot.slot_round AS slot_round, slot.division_id,\
-                            location.location_name AS location_name, location.location_description AS location_description, location.location_id AS location_id, \
-                            team1.team_name AS team1_name, team1.team_id AS team1_id, team1.team_acronym AS team1_acronym, \
-                            team2.team_name AS team2_name, team2.team_id AS team2_id, team2.team_acronym AS team2_acronym, \
-                            matchup.matchup_id AS matchup_id, matchup_team1_score AS team1_score, matchup_team2_score AS team2_score, matchup_team1_timeouts AS team1_timeout, matchup_team2_timeouts AS team2_timeout, \
-                            game.game_completed AS game_completed, game.game_id AS game_id \
-                        FROM slot  \
-                        INNER JOIN location ON location.location_id = slot.location_id \
-                        INNER JOIN game ON game.slot_id = slot.slot_id \
-                        INNER JOIN matchup ON game.matchup_id = matchup.matchup_id \
-                        INNER JOIN team AS team1 ON matchup_team1_id = team1.team_id \
-                        INNER JOIN team AS team2 ON matchup_team2_id = team2.team_id \
-                        WHERE game_completed IN  %s " % format_strings,
+        if self.conn.is_connected():
+            format_strings = ','.join(['\'%s\''] * len(gameStates))
+            query = "SELECT team1.team_name AS team1_name, team1.team_acronym AS team1_acronym, team1.team_id AS team1_id,  \
+                        team2.team_name AS team2_name, team2.team_acronym AS team2_acronym, team2.team_id AS team2_id, \
+                        matchup.matchup_id AS matchup_id, matchup.matchup_team1_timeouts AS team1_timeouts, matchup.matchup_team1_score AS team1_score, matchup.matchup_team2_timeouts AS team2_timeouts, matchup.matchup_team2_score AS team2_score, \
+                        slot.slot_id AS slot_id, slot.slot_start AS slot_start, slot.slot_end AS slot_end, slot.location_id AS location_id, \
+                        round.round_number AS round_number, \
+                        game.game_id AS game_id\
+                        FROM game \
+                        INNER JOIN matchup ON game.matchup_id = matchup.matchup_id\
+                        INNER JOIN team AS team1 ON matchup.matchup_team1_id = team1.team_id \
+                        INNER JOIN team AS team2 ON matchup.matchup_team2_id = team2.team_id \
+                        INNER JOIN slot ON game.slot_id = slot.slot_id \
+                        INNER JOIN round ON slot.round_id = round.round_id \
+                        WHERE game.game_state IN (%s)" % format_strings
 
-            orderBy = "start"
-            if(locationId >= 0 ):
-               # query += "AND location.location_id = %s "   
-                #query += "ORDER BY " + orderBy                
-                args = (tuple(gameStates), locationId, )             
-            else:                     
-                #query += " ORDER BY " + orderBy + ""                 
-                args = (tuple(gameStates),) 
+            args = tuple(gameStates)
 
-
-            try:                
+            try:
                 cursor = self.conn.cursor(dictionary=True)
                 cursor.execute(query, args)
                 row = cursor.fetchone() 
                 while row is not None:
                     print(row)
-                    team1 = Team(row["team1_name"],row["team1_acronym"],row["team1_id"])
-                    team2 = Team(row["team2_name"],row["team2_acronym"],row["team2_id"])
-                    matchup = MatchUp(team1,team2,row["matchup_id"])
-                    slot = Slot(row["start"],row["end"],row["location_id"], row["slot_id"],row["slot_round"])
-                    result = Result(row["matchup_id"],row["team1_score"], row["team2_score"],row["team1_timeout"],row["team2_timeout"])
-                    game = Game(matchup,result,slot,row["game_id"])
+                    team1 = Team(row["team1_name"], row["team1_acronym"], row["team1_id"])
+                    team2 = Team(row["team2_name"], row["team2_acronym"], row["team2_id"])
+                    matchup = MatchUp(team1, team2, row["matchup_id"])
+                    slot = Slot(row["slot_start"], row["slot_end"], row["location_id"], row["slot_id"], row["round_number"])
+                    result = Result(row["matchup_id"], row["team1_score"], row["team2_score"], row["team1_timeouts"], row["team2_timeouts"])
+                    game = Game(matchup, result, slot, row["game_id"])
                     games.append(game)
                     row = cursor.fetchone()              
  
@@ -174,15 +161,14 @@ class DatabaseHandler:
         else:
             raise NoDatabaseConnection()
 
-        return  games
-
-  
+        return games
 
 
 ######################################################################################
+
     def getListOfAllTeams(self, divisionId:int)->List[Team]:
         if(divisionId== None or divisionId < 0):
-            raise Exception()
+            raise ValueError("divisionId must not be None nor negative")
 
         teams = []
         if self.conn.is_connected():             
@@ -262,13 +248,11 @@ class DatabaseHandler:
 
         return locations
 
-
-
-    def insertNextGame(self, game:Game, gamestate:GameState, debug:int = 0)->bool:
+    def insertNextGame(self, game: Game, gamestate: GameState, debug: int = 0)->bool:
         status = True
         matchupQuery = "INSERT INTO matchup(matchup_team1_id ,matchup_team2_id) " \
                     "VALUES(%s,%s)"
-        gameQuery = "REPLACE INTO game(matchup_id ,slot_id, game_completed) " \
+        gameQuery = "REPLACE INTO game(matchup_id ,slot_id, game_state) " \
                     "VALUES(%s,%s,%s) "       
         
         try:    
@@ -301,78 +285,14 @@ class DatabaseHandler:
 
         return status
 
-
-
 #######################################################################################
-    def insertSlot(self, slot: Slot, debug = 0)->None:
-        query = "INSERT INTO slot(slot_start ,slot_end ,location_id, slot_round) " \
-                    "VALUES(%s,%s,%s,%s)"
-        args = (slot.start, slot.end, slot.locationId, slot.round)
- 
-        try: 
-            cursor = self.conn.cursor()
-            cursor.execute(query, args)
- 
-            if cursor.lastrowid:
-                print('last insert id', cursor.lastrowid)
-            else:
-                print('last insert id not found')
-            if debug == 0:            
-                self.conn.commit()
-            else:
-                print("Rollback")
-                self.conn.rollback()
-
-        except Error as error:
-            self.conn.rollback()
-            print(error)
- 
-        finally:
-            cursor.close()
             
-    def getScoreboardTexts(self, location:Location = None, timeThreshold = None)->List[ScoreboardText]:
-        scoreboardTexts = []
-        if timeThreshold == None:          
-            timeThreshold =  int(time.time())
-        if location != None:
-            locationId = location.locationId
-        else:
-            locationId = None
-
-        if self.conn.is_connected():             
-            query = "SELECT scoreboardtext_id, location_id, scoreboardtext_text, scoreboardtext_start, scoreboardtext_end, scoreboardtext_color" \
-                " FROM scoreboardtext" \
-                " WHERE scoreboardtext_end > %s"
-            args = (timeThreshold,)
-            if ((locationId is not None) and (locationId > 0)):
-                 query += " AND location_id = %s"
-                 args = (timeThreshold, locationId)
-
-            try:                
-                cursor = self.conn.cursor(dictionary=True)                
-                cursor.execute(query, args)
-                row = cursor.fetchone() 
-                while row is not None:
-                    #print(row)
-                    scoreboardText = ScoreboardText (row["scoreboardtext_id"], row["location_id"], row["scoreboardtext_text"], row["scoreboardtext_start"], row["scoreboardtext_end"], row["scoreboardtext_color"])          
-                    scoreboardTexts.append(scoreboardText)
-                    row = cursor.fetchone()        
-            except Error as e:
-                print(e)
- 
-            finally:
-                cursor.close()      
-        else:
-            raise NoDatabaseConnection()
-
-        return scoreboardTexts
-
     def connect(self)->None:
         """ Connect to MySQL database """
         #read config from file#
         db_config = self.read_db_config()
         try:
-            conn = MySQLConnection(**db_config) 
+            conn = MySQLConnection(**db_config, charset='utf8')
             print('Connecting to MySQL database...')
                 
             if conn.is_connected():
@@ -396,8 +316,8 @@ class DatabaseHandler:
             print('No active database connection to be closed.')
             return False
 
-
-    def read_db_config(self, filename=os.path.join(module_dir, 'includes/config.ini'), section='mysql')->dict:
+    @staticmethod
+    def read_db_config(filename=os.path.join(module_dir, 'includes/config.ini'), section='mysql')->dict:
         """ Read database configuration file and return a dictionary object
         :param filename: name of the configuration file
         :param section: section of database configuration

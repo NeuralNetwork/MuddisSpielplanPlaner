@@ -25,8 +25,8 @@ class DataAPI(object):
     def getSwissDrawDivisions(self):        
         return self.databaseHandler.getSwissDrawDivisions()
 
-    def getFinalizeGameTime(self):
-        return self.databaseHandler.getFinalzeGameTime()
+    def getFinalizeGameTime(self, round_number: int):
+        return self.databaseHandler.getFinalzeGameTime(round_number)
      
     def getListOfAllTeams(self, divisionId)->List[Team]:
         """" getListOfAllTeams  gets all Teams (of division) stored in data source
@@ -87,7 +87,7 @@ class DataAPI(object):
         list
             a list of games either played or not played yet
         """
-        gameStates = [GameState.COMPLETED, GameState.RUNNING]
+        #gameStates = [GameState.COMPLETED, GameState.RUNNING]
         return self.databaseHandler.getListOfGames(divisionId, gameStates, locationId)
 
     def getListOfLocations(self)->List[Location]:
@@ -137,25 +137,6 @@ class DataAPI(object):
         """        
         return self.databaseHandler.insertNextGame(game,gamestate,debug)
 
-    def getScoreboardTexts(self, location:Location = None, timeThreshold = None)->List[ScoreboardText]:
-        """" getScoreboardTexts returns Scoreboardtexts from database
-        getScoreboardTexts(self, location:Location = None, timeThreshold = None)
 
-        If the argument `location` isn't passed in, the default are all locations
-        If the argument `timeThreshold` isn't passed in, the default is now as timestamp
-
-
-        Parameters
-        ----------
-        location : Location, optional
-            location shows for what location the scoreboard text is asked for
-        timeThreshold : int, optional            
-            timeThreshold is a timestamp. Funtion returns only scoreboardtexts ending after that threshold 
-
-        Returns
-        -------
-        ScoreboardText             
-        """        
-        return  self.databaseHandler.getScoreboardTexts( location , timeThreshold )
     
 
