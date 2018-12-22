@@ -25,12 +25,12 @@ class DatabaseHandler:
             self.disconnect()
 
     ###################################################################################
-    def getFinalzeGameTime(self, round_number: int)->int:
+    def getFinalzeGameTime(self, round_number: int, divisionId: int)->int:
         if round_number is None or round_number < 0:
             raise ValueError("round_number must not be None nor negative")
         if self.conn.is_connected():   
-            query = "SELECT round_fixnextgametime FROM round WHERE round.round_number = %s LIMIT 1"
-            args = (round_number,)
+            query = "SELECT round_fixnextgametime FROM round WHERE round.round_number = %s AND round.division_id = %s LIMIT 1"
+            args = (round_number, divisionId)
             cursor = self.conn.cursor(dictionary=True)
             cursor.execute(query, args)
             row = cursor.fetchone() 
@@ -283,11 +283,12 @@ class DatabaseHandler:
 
     def insertNextGames(self, games: [Game], gamestate: GameState, debug: int = 0)->bool:
         status = True
-
+        savecounter = 0
         matchupQuery = "INSERT INTO matchup(matchup_team1_id ,matchup_team2_id) " \
                        "VALUES(%s,%s)"
         gameQuery = "REPLACE INTO game(matchup_id ,slot_id, game_state) " \
                     "VALUES(%s,%s,%s) "
+
         try:
             for game in games:
                 self.conn.autocommit = False
@@ -301,10 +302,12 @@ class DatabaseHandler:
 
                 gameArgs = (cursor.lastrowid, game.slot.slotId, gamestate,)
                 cursor.execute(gameQuery, gameArgs)
+                savecounter += 1
 
             if debug == 0:
                 self.conn.commit()
             else:
+                print(savecounter)
                 print("Rollback")
                 self.conn.rollback()
 
@@ -316,6 +319,57 @@ class DatabaseHandler:
         finally:
             if self.conn.is_connected():
                 cursor.close()
+
+        return status
+
+    def insertRanking(self, ranked_teamlist: [Team], round_number: int, divisionId: int, debug: int = 0):
+        if ranked_teamlist is None or len(ranked_teamlist) <= 0:
+            raise ValueError("ranked_teamlist must not be None nor negative")
+        if round_number is None or round_number < 0:
+            raise ValueError("round_number must not be None nor negative")
+        status = True
+        round_id = -1
+
+        if self.conn.is_connected():
+            queryRoundId = "SELECT round_id FROM round WHERE round.round_number = %s AND round.division_id = %s LIMIT 1"
+
+            queryRanking = "REPLACE INTO ranking (team_id ,ranking_rank, round_id, division_id) " \
+                    "VALUES(%s, %s, %s, %s) "
+
+            rankCounter = 1
+            try:
+                cursor = self.conn.cursor(dictionary=True)
+                argsRoundId = (round_number, divisionId)
+                cursor.execute(queryRoundId, argsRoundId)
+                row = cursor.fetchone()
+                round_id = row["round_id"]
+
+
+
+                for team in ranked_teamlist:
+                    self.conn.autocommit = False
+                    cursor = self.conn.cursor()
+                    argsRanking = (team.teamId, rankCounter, round_id, divisionId)
+                    cursor.execute(queryRanking, argsRanking)
+                    rankCounter += 1
+
+                if debug == 0:
+                    self.conn.commit()
+                else:
+                    print(rankCounter)
+                    print("Rollback")
+                    self.conn.rollback()
+
+            except Error as error:
+                self.conn.rollback()
+                status = False
+                print(error)
+
+            finally:
+                if self.conn.is_connected():
+                    cursor.close()
+        else:
+            raise NoDatabaseConnection()
 
         return status
 

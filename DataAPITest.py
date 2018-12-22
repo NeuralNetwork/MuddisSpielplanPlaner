@@ -71,7 +71,7 @@ class TestConnectionHandling(unittest.TestCase):
 
     def test_getFinalizedGameTime(self):
         print("testing getting finalizedGameTime")
-        finalizedGameTime = self.instance.getFinalizeGameTime(1)
+        finalizedGameTime = self.instance.getFinalizeGameTime(1, divisionId_Swissdraw)
         print(finalizedGameTime)
 
     def test_insertGame(self):
@@ -83,7 +83,8 @@ class TestConnectionHandling(unittest.TestCase):
             matchup = MatchUp(teams[0], teams[1])   # set up matchups with 2 (random, the first 2) teams from all teams
             game: Game = Game(matchup, result, slots[0])  # set up game with matchup, result, and the first slot
             self.instance.insertNextGame(game, GameState.COMPLETED, 1)  # insert nextgames in debug mode (no real insertion in db). don' use second parameter for productive system
-        print("no available Slots found")
+        else:
+            print("no available Slots found")
 
     def test_insertGames(self):
         print("########## testing inserting next games ############")
@@ -96,10 +97,14 @@ class TestConnectionHandling(unittest.TestCase):
             for x in range(3):
                 game: Game = Game(matchup, result, slots[0])  # set up game with matchup, result, and the first slot
                 games.append(game)
-            print(self.instance.insertNextGames(games, GameState.COMPLETED,
-                                         1))  # insert nextgames in debug mode (no real insertion in db). don' use second parameter for productive system
+            print(self.instance.insertNextGames(games, GameState.COMPLETED, 1))  # insert nextgames in debug mode (no real insertion in db). don' use second parameter for productive system
         else:
             print("no available Slots found")
+
+    def test_insertGames(self):
+        print("########## testing inserting ranking ############")
+        teams = self.instance.getListOfAllTeams(divisionId_Swissdraw)  # get a list of teams
+        print(self.instance.insertRanking(teams, 1, divisionId_Swissdraw, 1))  # insert nextgames in debug mode (no real insertion in db). don' use second parameter for productive system
 
     @classmethod    
     def tearDownClass(self):

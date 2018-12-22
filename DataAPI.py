@@ -25,8 +25,8 @@ class DataAPI(object):
     def getSwissDrawDivisions(self):        
         return self.databaseHandler.getSwissDrawDivisions()
 
-    def getFinalizeGameTime(self, round_number: int):
-        return self.databaseHandler.getFinalzeGameTime(round_number)
+    def getFinalizeGameTime(self, round_number: int, divisionId: int):
+        return self.databaseHandler.getFinalzeGameTime(round_number, divisionId)
      
     def getListOfAllTeams(self, divisionId)->List[Team]:
         """" getListOfAllTeams  gets all Teams (of division) stored in data source
@@ -157,6 +157,29 @@ class DataAPI(object):
             False if not
         """
         return self.databaseHandler.insertNextGames(games, gamestate, debug)
+
+    def insertRanking(self, ranked_teamlist: [Team], round_number: int, division_id: int, debug: int = 0):
+        """" insertRanking inserts a ranking for a specific round
+                insertRanking(self, ranked_teamlist: [Team], round_number: int):
+
+                If the argument `debug` isn't passed in, the default is no debug
+
+                Parameters
+                ----------
+                ranked_teamlist : List of Teams
+                    ranked_teamlist from type [Team]. Will be inserted in db.
+                    ranked_teamlist is a sorted List of Teams. Best team first, worst team last
+                debug : int, optional
+                    if no debug is given it will be in productive mode
+
+                Returns
+                -------
+                bool
+                    True if inserted
+                    False if not
+                """
+        return self.databaseHandler.insertRanking(ranked_teamlist, round_number, division_id, debug)
+
 
 
     
