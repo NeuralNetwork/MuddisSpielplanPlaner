@@ -4,6 +4,10 @@ from typing import List
 
 
 class SwissGameScheduler:
+    def __init__(self, regularGain : int = 20, penaliseGain : int = 200):
+        self.regularGain = regularGain
+        self.penaliseGain = penaliseGain
+
     def getTimeDelta(self, previousMatches: List[Game], teamName: int, futureSlot: Game) -> int:
         """ calculate pause for teamName between last game and futureSlot
         """
@@ -86,7 +90,7 @@ class SwissGameScheduler:
         secondDelta = self.getTimeDelta(previousMatches, futureMatchUp.matchup.second.teamId, futureSlot)
         # subtract optimal pause length from effective pause length
         firstCorrectedDelta = firstDelta - targetDelta
-        secondCorrectedDelta = secondDelta- targetDelta
+        secondCorrectedDelta = secondDelta - targetDelta
         # take smaller difference (punish small pause)
         gainSource = min(firstCorrectedDelta, secondCorrectedDelta)
         if hallChangeNeeded:
@@ -95,13 +99,12 @@ class SwissGameScheduler:
 
         # acceptable pause length:
         if gainSource >= 0:
-
             # penalize multiple games of a certain team in Gym 3
             if timesPlayedInHall3 > 1 and futureSlot.slot.locationId == 3:
-                return 20 / timesPlayedInHall3
+                return self.penaliseGain / timesPlayedInHall3
             else:
-                return 20
-        # too short pause lenght
+                return self.regularGain
+        # too short pause length
         else:
             return -(gainSource**2) # heavily penalize for being above targetDelta threshold
 

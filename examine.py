@@ -1,5 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import random
+from multiprocessing import Pool
 from TournamentDescriptionClasses import Game, MatchUp, Result, Slot, Team
 from MatchUpGenerator import MatchUpGenerator
 from SwissGameScheduler import SwissGameScheduler
@@ -80,7 +82,7 @@ def calculateRankingLoss(expected, actual):
     return teamLosses
 
 
-def evalFunction(numRounds):
+def evalFunction(numRounds, regularGain, penalizeGain):
     ranking = [Team("a", "", 0),
                Team("b", "", 1),
                Team("c", "", 2),
@@ -157,7 +159,7 @@ def evalFunction(numRounds):
         matchUpGenerator = MatchUpGenerator(ranking, results)
         futureMatchUps = matchUpGenerator.generateMatchUps(False)
         # schedule matchups
-        scheduler = SwissGameScheduler()
+        scheduler = SwissGameScheduler(regularGain, penalizeGain)
         returnedGames = scheduler.maximizeGain(results, futureSlots[i], futureMatchUps)
         # generate results
         for game in returnedGames:
@@ -215,14 +217,27 @@ def plotHall3Stats(allTimesPlayedHall3):
     print("allTimesPlayedHall3 variance:", np.var(allTimesPlayedHall3))
 
 
-numIterations = 100
-allRankingLosses = list()
-allTimesPlayedHall3 = list()
-for index in range(0,numIterations):
-    print("\n\nIteration " + str(index) + "\n")
-    losses, timesPlayedHall3 = evalFunction(5)
-    allRankingLosses.append(losses)
-    allTimesPlayedHall3.append(timesPlayedHall3)
+def runSimulation(regularGain, penalizeGain):
+    numIterations = 100
+    allRankingLosses = list()
+    allTimesPlayedHall3 = list()
+    for index in range(0,numIterations):
+        print("\n\nIteration " + str(index) + "\n")
+        losses, timesPlayedHall3 = evalFunction(5, regularGain, penalizeGain)
+        allRankingLosses.append(losses)
+        allTimesPlayedHall3.append(timesPlayedHall3)
+    return np.var(allTimesPlayedHall3)
 
-plotRankingStats(allRankingLosses)
-plotHall3Stats(allTimesPlayedHall3)
+
+
+input = []
+for i in range(0, 2000):
+    regularGain = random.uniform(0, 2000)
+    penalizeGain = random.uniform(0, 2000)
+    input.append((regularGain, penalizeGain))
+
+with Pool(processes=12) as pool:
+    output = pool.starmap(runSimulation, input)
+    zipped = list(zip(output, input))
+    zipped.sort()
+    print(zipped[0:10])
