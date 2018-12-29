@@ -31,14 +31,16 @@ class Context:
             self.teams.append(tuple(range(0, division[1])))
 
         self.slots = list()
-        hallId = 0
-        for division in self.divisions:
-            startTime = self.locations[hallId][1]
-            endTime = startTime + (self.playTime * 60.0)
-            self.locations[hallId][1] = endTime
-            self.slots.append((startTime, endTime, hallId))
-            hallId += 1
-            hallId %= len(self.locations)
+        locationId = 0
+        for round in range(0, self.rounds):
+            for divisionId, division in enumerate(self.divisions, 1):
+                for matchupIndex in range(0, int(division[1] / 2)):
+                    startTime = self.locations[locationId][1]
+                    endTime = startTime + (self.playTime * 60.0)
+                    self.locations[locationId][1] = endTime
+                    self.slots.append((divisionId, locationId+1, startTime, endTime, round))
+                    locationId += 1
+                    locationId %= len(self.locations)
 
     def readConfig(self):
         parser = ConfigParser()
@@ -82,7 +84,6 @@ class Generator:
         self._fillTeams()
         self._fillRankings()
         self._fillMatchups()
-        self._fillRounds()
         self._fillLocations()
         self._fillSlots()
         self._fillGames()
@@ -187,17 +188,43 @@ class Generator:
             offsetMatchupId += maxMatchupId
         self._insert(table, data)
 
-    def _fillRounds(self):
-        pass
-
     def _fillLocations(self):
-        pass
+        table = "location"
+        data = list()
+        for locationId, location in enumerate(self.ctx.locations, 1):
+            name = location[0]
+            description = "__" + name + "__"
+            color = "#00ff00"
+            latitude = 52.0
+            longitude = 5.0
+            data.append((locationId, name, description, color, latitude, longitude))
+        self._insert(table, data)
 
     def _fillSlots(self):
-        pass
+        table = "slot"
+        data = list()
+        for slotId, slot in enumerate(self.ctx.slots, 1):
+            divisionId = slot[0]
+            locationId = slot[1]
+            start = slot[2]
+            end = slot[3]
+            round = slot[4]
+            data.append((slotId, divisionId, locationId, start, end, round))
+        self._insert(table, data)
 
     def _fillGames(self):
-        pass
+        table = "game"
+        data = list()
+        gameId = 1
+        for division in self.ctx.divisions:
+            for i in range(0, int(division[1] / 2)):
+                matchupId = gameId
+                slotId = gameId
+                notYetStarted = 0
+                gameCompleted = notYetStarted
+                data.append((gameId, matchupId, slotId, gameCompleted))
+                gameId += 1
+        self._insert(table, data)
 
 generator = Generator()
 generator.createDB()
