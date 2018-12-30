@@ -39,7 +39,8 @@ class DatabaseHandler:
             raise NoDatabaseConnection()
         return getFinalzeGameTime
 
-    def getRoundIdToBeOptimized(self, divisionId: int, roundStates: List[GameState] = [RoundState.PREDICTION,RoundState.UNKNOWN])->int:
+    def getRoundIdToBeOptimized(self, divisionId: int,
+                                roundStates: List[GameState] = (RoundState.PREDICTION, RoundState.UNKNOWN))->int:
         if divisionId is None or divisionId < 0:
             raise ValueError("divisionId must not be None nor negative")
         round_id = None
@@ -206,7 +207,7 @@ class DatabaseHandler:
                     result = Result(row["matchup_id"], row["team1_score"], row["team2_score"], row["team1_timeouts"], row["team2_timeouts"])
                     game = Game(matchup, result, slot, row["game_id"])
                     games.append(game)
-                    row = cursor.fetchone()              
+                    row = cursor.fetchone()
  
             except Error as e:
                 print(e)
@@ -427,6 +428,17 @@ class DatabaseHandler:
             raise NoDatabaseConnection()
 
         return status
+
+    def setRoundState(self, round_id: int, round_state: RoundState)->None:
+        status = True
+        round_id = -1
+
+        if not self.conn.is_connected():
+            raise NoDatabaseConnection()
+
+        query = "REPLACE INTO ranking (round_state) VALUES(%s) "
+
+        # TODO do something sensible
 
 #######################################################################################
             

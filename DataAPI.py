@@ -183,7 +183,5 @@ class DataAPI(object):
                 """
         return self.databaseHandler.insertRanking(ranked_teamlist, round_number, division_id, debug)
 
-
-
-    
-
+    def setRoundState(self, roundId: int, roundState: RoundState, debug: int = 0)->None:
+        self.databaseHandler.setRoundState(roundId, roundState)
