@@ -106,6 +106,11 @@ class TestConnectionHandling(unittest.TestCase):
         teams = self.instance.getListOfAllTeams(divisionId_Swissdraw)  # get a list of teams
         print(self.instance.insertRanking(teams, 1, divisionId_Swissdraw, 1))  # insert nextgames in debug mode (no real insertion in db). don' use second parameter for productive system
 
+    def test_getRoundId(self):
+        print("########## testing getting Round ID ############")
+        round_id = self.instance.getRoundIdToBeOptimized(1)
+        print(str(round_id))
+
     @classmethod    
     def tearDownClass(self):
         print("Destruct test")

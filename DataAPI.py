@@ -1,7 +1,7 @@
 from DatabaseHandler import DatabaseHandler
 from TournamentDescriptionClasses import Game, Team, Slot, Result, MatchUp, Division, Location
 from ScoreboardDescriptionClasses import ScoreboardText
-from States import GameState
+from States import GameState, RoundState
 from typing import List
 
 
@@ -27,6 +27,9 @@ class DataAPI(object):
 
     def getFinalizeGameTime(self, round_number: int, divisionId: int):
         return self.databaseHandler.getFinalzeGameTime(round_number, divisionId)
+
+    def getRoundIdToBeOptimized(self, divisionId: int, roundStates: List[GameState] = [RoundState.PREDICTION, RoundState.UNKNOWN])->int:
+        return self.databaseHandler.getRoundIdToBeOptimized(divisionId, roundStates)
      
     def getListOfAllTeams(self, divisionId)->List[Team]:
         """" getListOfAllTeams  gets all Teams (of division) stored in data source

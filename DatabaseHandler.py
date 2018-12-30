@@ -39,6 +39,43 @@ class DatabaseHandler:
             raise NoDatabaseConnection()
         return getFinalzeGameTime
 
+    def getRoundIdToBeOptimized(self, divisionId: int, roundStates: List[GameState] = [RoundState.PREDICTION,RoundState.UNKNOWN])->int:
+        if divisionId is None or divisionId < 0:
+            raise ValueError("divisionId must not be None nor negative")
+        round_id = None
+
+        if self.conn.is_connected():
+            # Find slotsof next round
+            # Either find predicted round or find lowest round number of slots without games
+            # get round number of predicted round
+            format_strings = ','.join(['\'%s\''] * len(roundStates))
+
+
+
+
+
+            query = "SELECT round.round_id AS round_id \
+                              FROM round " \
+                             " WHERE round_grouporder = (SELECT MIN(round.round_grouporder) FROM round) AND round.division_id = " + str(divisionId) + " AND round.round_state IN (%s) ORDER BY round.round_number ASC LIMIT 1" % format_strings
+           # args = (divisionId,)
+            args = tuple(roundStates)
+            try:
+                cursor = self.conn.cursor(dictionary=True)
+                cursor.execute(query, args)
+                row = cursor.fetchone()
+                if row is not None:
+                    round_id = row["round_id"]
+
+            except Error as e:
+                print(e)
+
+            finally:
+                cursor.close()
+        else:
+            raise NoDatabaseConnection()
+        return round_id
+
+
     ###################################################################################
     def getListOfSlotsOfUpcomingRound(self, divisionId: int)->List[Slot]:
         if divisionId is None or divisionId < 0:
@@ -143,7 +180,7 @@ class DatabaseHandler:
                 cursor.execute(query, args)
                 row = cursor.fetchone() 
                 while row is not None:
-                    print(row)
+                    #print(row)
                     team1 = Team(row["team1_name"], row["team1_acronym"], row["team1_id"])
                     team2 = Team(row["team2_name"], row["team2_acronym"], row["team2_id"])
                     matchup = MatchUp(team1, team2, row["matchup_id"])
