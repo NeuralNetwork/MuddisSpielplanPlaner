@@ -25,8 +25,8 @@ class DataAPI(object):
     def getSwissDrawDivisions(self):        
         return self.databaseHandler.getSwissDrawDivisions()
 
-    def getFinalizeGameTime(self, round_number: int, divisionId: int):
-        return self.databaseHandler.getFinalzeGameTime(round_number, divisionId)
+    def getFinalizeGameTime(self, round_id: int):
+        return self.databaseHandler.getFinalzeGameTime(round_id)
 
     def getRoundIdToBeOptimized(self, divisionId: int, roundStates: List[GameState] = [RoundState.PREDICTION, RoundState.UNKNOWN])->int:
         return self.databaseHandler.getRoundIdToBeOptimized(divisionId, roundStates)

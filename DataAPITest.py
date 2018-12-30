@@ -71,7 +71,7 @@ class TestConnectionHandling(unittest.TestCase):
 
     def test_getFinalizedGameTime(self):
         print("testing getting finalizedGameTime")
-        finalizedGameTime = self.instance.getFinalizeGameTime(1, divisionId_Swissdraw)
+        finalizedGameTime = self.instance.getFinalizeGameTime(2)
         print(finalizedGameTime)
 
     def test_insertGame(self):

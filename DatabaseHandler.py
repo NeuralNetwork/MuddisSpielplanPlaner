@@ -25,12 +25,12 @@ class DatabaseHandler:
             self.disconnect()
 
     ###################################################################################
-    def getFinalzeGameTime(self, round_number: int, divisionId: int)->int:
-        if round_number is None or round_number < 0:
+    def getFinalzeGameTime(self, round_id: int)->int:
+        if round_id is None or round_id < 0:
             raise ValueError("round_number must not be None nor negative")
         if self.conn.is_connected():   
-            query = "SELECT round_fixnextgametime FROM round WHERE round.round_number = %s AND round.division_id = %s LIMIT 1"
-            args = (round_number, divisionId)
+            query = "SELECT round_fixnextgametime FROM round WHERE round.round_id = %s LIMIT 1"
+            args = (round_id,)
             cursor = self.conn.cursor(dictionary=True)
             cursor.execute(query, args)
             row = cursor.fetchone() 
@@ -49,10 +49,6 @@ class DatabaseHandler:
             # Either find predicted round or find lowest round number of slots without games
             # get round number of predicted round
             format_strings = ','.join(['\'%s\''] * len(roundStates))
-
-
-
-
 
             query = "SELECT round.round_id AS round_id \
                               FROM round " \
