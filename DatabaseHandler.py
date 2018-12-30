@@ -429,16 +429,37 @@ class DatabaseHandler:
 
         return status
 
-    def setRoundState(self, round_id: int, round_state: RoundState)->None:
+    def setRoundState(self, round_id: int, round_state: RoundState, debug: int = 0)->None:
         status = True
-        round_id = -1
+        if round_id is None or round_id < 0:
+            raise ValueError("round_id must not be None nor negative")
 
-        if not self.conn.is_connected():
+        if self.conn.is_connected():
+            query = "UPDATE round "\
+                    "SET round_state = %s "\
+                    "WHERE round_id = %s"
+
+            try:
+                cursor = self.conn.cursor(dictionary=True)
+                args= (round_state, round_id)
+                cursor.execute(query, args)
+
+                if debug == 0:
+                    self.conn.commit()
+                else:
+                    print("Rollback")
+                    self.conn.rollback()
+
+            except Error as error:
+                self.conn.rollback()
+                print(error)
+            finally:
+                if self.conn.is_connected():
+                    cursor.close()
+        else:
             raise NoDatabaseConnection()
 
-        query = "REPLACE INTO ranking (round_state) VALUES(%s) "
-
-        # TODO do something sensible
+        return True
 
 #######################################################################################
             

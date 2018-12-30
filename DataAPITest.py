@@ -1,7 +1,7 @@
 import unittest
 
 from DataAPI import DataAPI
-from States import GameState
+from States import GameState, RoundState
 from TournamentDescriptionClasses import Slot, MatchUp, Result, Game, Team, Location 
 import time
 
@@ -110,6 +110,11 @@ class TestConnectionHandling(unittest.TestCase):
         print("########## testing getting Round ID ############")
         round_id = self.instance.getRoundIdToBeOptimized(1)
         print(str(round_id))
+
+    def test_setRoundState(self):
+        print("########## testing setting Round State ############")
+        self.instance.setRoundState(1, RoundState.PUBLISHED, 1)
+        print("setted Round")
 
     @classmethod    
     def tearDownClass(self):
