@@ -50,13 +50,33 @@ class DatabaseHandler:
             # get round number of predicted round
             format_strings = ','.join(['\'%s\''] * len(roundStates))
 
-            query = "SELECT round.round_id AS round_id \
-                              FROM round \
-                               WHERE round_grouporder = (SELECT MIN(round.round_grouporder) FROM round) \
-                               AND round.division_id = " + str(divisionId) + " AND round.round_state IN (%s) \
-                               ORDER BY round.round_number ASC LIMIT 1" % format_strings #FIXME
-           # args = (divisionId,)
-            args = tuple(roundStates)
+           # query = "SELECT round.round_id AS round_id \
+           #                   FROM round \
+           #                    WHERE round_grouporder = (SELECT MIN(round.round_grouporder) FROM round) \
+           #                    AND round.division_id = " + str(divisionId) + " AND round.round_state IN (%s) \
+           #                    ORDER BY round.round_number ASC LIMIT 1" % format_strings #FIXME
+
+
+            roundStateStringList = ""
+            for x in range(len(roundStates)):
+                if x == 0:
+                    roundStateStringList += "%s"
+                else:
+                    roundStateStringList += ",%s"
+
+            query = "SELECT round.round_id AS round_id "\
+                               "FROM round "\
+                               "WHERE round_grouporder = "\
+                                    "(SELECT MIN(round.round_grouporder) "\
+                                    "FROM round "\
+                                    "WHERE round.round_state IN (" + roundStateStringList + ")) "\
+                               "AND round.division_id = %s AND round.round_state IN (" + roundStateStringList + ") "\
+                               "ORDER BY round.round_number ASC LIMIT 1"
+            #print(query)
+            roundStateArgs = ()
+            for x in roundStates:
+                roundStateArgs += (x,)
+            args = roundStateArgs + (divisionId,) + roundStateArgs
             try:
                 cursor = self.conn.cursor(dictionary=True)
                 cursor.execute(query, args)
