@@ -26,7 +26,7 @@ CREATE TABLE `division` (
   `division_id` int(16) NOT NULL AUTO_INCREMENT,
   `division_name` varchar(128) CHARACTER SET utf8 NOT NULL,
   `division_acronym` varchar(8) CHARACTER SET utf8 NOT NULL,
-  `division_color` varchar(7) COLLATE utf8_unicode_ci NOT NULL,
+  `division_color` varchar(7) COLLATE utf8_unicode_ci DEFAULT NULL,
   `division_optimized` int(8) NOT NULL,
   PRIMARY KEY (`division_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
@@ -43,7 +43,7 @@ CREATE TABLE `game` (
   `game_id` int(16) NOT NULL AUTO_INCREMENT,
   `matchup_id` int(16) NOT NULL,
   `slot_id` int(16) NOT NULL,
-  `game_completed` int(1) NOT NULL,
+  `game_state` int(1) NOT NULL,
   PRIMARY KEY (`game_id`),
   UNIQUE KEY `slot_id_2` (`slot_id`),
   KEY `matchup_id` (`matchup_id`),
@@ -133,11 +133,41 @@ CREATE TABLE `ranking` (
   `ranking_id` int(16) NOT NULL AUTO_INCREMENT,
   `team_id` int(16) NOT NULL,
   `ranking_rank` int(8) NOT NULL,
-  `ranking_round` int(8) NOT NULL,
+  `round_id` int(16) NOT NULL,
+  `division_id` int(16) NOT NULL,
   PRIMARY KEY (`ranking_id`),
   KEY `team_id` (`team_id`),
-  CONSTRAINT `ranking_ibfk_1` FOREIGN KEY (`team_id`) REFERENCES `team` (`team_id`) ON DELETE CASCADE ON UPDATE CASCADE
+  KEY `round_id` (`round_id`),
+  KEY `division_id` (`division_id`),
+  CONSTRAINT `ranking_ibfk_1` FOREIGN KEY (`team_id`) REFERENCES `team` (`team_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `ranking_ibfk_2` FOREIGN KEY (`round_id`) REFERENCES `round` (`round_id`),
+  CONSTRAINT `ranking_ibfk_3` FOREIGN KEY (`division_id`) REFERENCES `division` (`division_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `round`
+--
+
+DROP TABLE IF EXISTS `round`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `round` (
+  `round_id` int(16) NOT NULL AUTO_INCREMENT,
+  `division_id` int(16) NOT NULL,
+  `round_number` int(16) NOT NULL,
+  `round_color` varchar(7) COLLATE utf8_unicode_ci NOT NULL,
+  `round_group` varchar(32) COLLATE utf8_unicode_ci NOT NULL,
+  `round_grouporder` int(8) NOT NULL,
+  `round_state` int(11) NOT NULL,
+  `round_fixnextgametime` int(16) NOT NULL,
+  `round_swissdrawGames` tinyint(1) NOT NULL,
+  `round_swissdrawRanking` tinyint(1) NOT NULL,
+  `round_swissdrawMatchup` tinyint(1) NOT NULL,
+  PRIMARY KEY (`round_id`),
+  KEY `division_id` (`division_id`),
+  CONSTRAINT `round_ibfk_1` FOREIGN KEY (`division_id`) REFERENCES `division` (`division_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -157,7 +187,7 @@ CREATE TABLE `scoreboardtext` (
   PRIMARY KEY (`scoreboardtext_id`),
   KEY `location_id` (`location_id`),
   CONSTRAINT `scoreboardtext_ibfk_2` FOREIGN KEY (`location_id`) REFERENCES `location` (`location_id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -169,18 +199,20 @@ DROP TABLE IF EXISTS `slot`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `slot` (
   `slot_id` int(16) NOT NULL AUTO_INCREMENT,
-  `division_id` int(16) NOT NULL,
   `location_id` int(16) NOT NULL,
   `slot_start` int(16) NOT NULL,
   `slot_end` int(16) NOT NULL,
-  `slot_round` int(16) NOT NULL,
+  `round_id` int(16) NOT NULL,
+  `slot_name` varchar(8) COLLATE utf8_unicode_ci NOT NULL,
+  `slot_description` text COLLATE utf8_unicode_ci,
+  `slot_alternateText` varchar(32) COLLATE utf8_unicode_ci DEFAULT NULL,
   PRIMARY KEY (`slot_id`),
   KEY `location_id` (`location_id`),
   KEY `slot_start` (`slot_start`,`location_id`) USING BTREE,
-  KEY `division_id` (`division_id`),
-  CONSTRAINT `slot_ibfk_1` FOREIGN KEY (`division_id`) REFERENCES `division` (`division_id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `slot_ibfk_2` FOREIGN KEY (`location_id`) REFERENCES `location` (`location_id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+  KEY `round_id` (`round_id`),
+  CONSTRAINT `slot_ibfk_2` FOREIGN KEY (`location_id`) REFERENCES `location` (`location_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `slot_ibfk_3` FOREIGN KEY (`round_id`) REFERENCES `round` (`round_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -195,11 +227,13 @@ CREATE TABLE `team` (
   `division_id` int(16) NOT NULL,
   `team_name` varchar(128) COLLATE utf8_unicode_ci NOT NULL,
   `team_acronym` varchar(8) COLLATE utf8_unicode_ci NOT NULL,
+  `team_seed` int(8) NOT NULL,
+  `team_city` varchar(32) COLLATE utf8_unicode_ci NOT NULL,
   `team_color` varchar(7) COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY (`team_id`),
   KEY `division_id` (`division_id`),
   CONSTRAINT `team_ibfk_1` FOREIGN KEY (`division_id`) REFERENCES `division` (`division_id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --

@@ -30,10 +30,12 @@ class Context:
             assert(division[1] % 2 == 0)
             self.teams.append(tuple(range(0, division[1])))
 
+        self.fixNextGameTimes = [[] for i in range(len(self.divisions))]
         self.slots = list()
         locationId = 0
-        for round in range(0, self.rounds):
+        for round in range(1, self.rounds+1):
             for divisionId, division in enumerate(self.divisions, 1):
+                maxEndTime = 0
                 for matchupIndex in range(0, int(division[1] / 2)):
                     startTime = self.locations[locationId][1]
                     endTime = startTime + (self.playTime * 60.0)
@@ -41,6 +43,8 @@ class Context:
                     self.slots.append((divisionId, locationId+1, startTime, endTime, round))
                     locationId += 1
                     locationId %= len(self.locations)
+                    maxEndTime = max(maxEndTime, endTime)
+                self.fixNextGameTimes[divisionId-1].append(maxEndTime - (self.playTime * 60 / 0.5))
 
     def readConfig(self):
         parser = ConfigParser()
@@ -81,6 +85,7 @@ class Generator:
         # insert data into tables
         self._fillDivisions()
 
+        self._fillRounds()
         self._fillTeams()
         self._fillRankings()
         self._fillMatchups()
@@ -90,6 +95,7 @@ class Generator:
 
         # TODO start simulated result entry job
         # TODO start schedule job
+        # TODO scheduler must insert final_prediction as published (only at test time)
 
     def _lockTable(self, table):
         self.cursor.execute("LOCK TABLES `" + table + "` WRITE")
@@ -141,6 +147,28 @@ class Generator:
             data.append((index, division, acronym, color, optimized))
         self._insert(table, data)
 
+    def _fillRounds(self):
+        table = "round"
+        data = list()
+        roundId = 1
+        for divisionId in range(1, len(self.ctx.divisions)+1):
+            for fixNextGameTimeIndex in range(0, self.ctx.rounds):
+                roundNumber = roundId - 1
+                roundColor = "#0000ff"
+                divisionName = self.ctx.divisions[divisionId-1][0]
+                roundGroup = divisionName + "_" + str(roundNumber)
+                roundGroupOrder = 0
+                roundState  = 0 # 0: unknown
+                fixNextGameTime = self.ctx.fixNextGameTimes[divisionId-1][fixNextGameTimeIndex]
+                swissDrawGames = 1 # 1: this round contains swiss draw games
+                swissDrawRanking = 1
+                swissDrawMatchup = 1
+                data.append((roundId, divisionId, roundNumber, roundColor, roundGroup, roundGroupOrder, roundState,
+                             fixNextGameTime, swissDrawGames, swissDrawRanking, swissDrawMatchup))
+
+                roundId += 1
+        self._insert(table, data)
+
     def _fillTeams(self):
         table = "team"
         data = list()
@@ -150,8 +178,10 @@ class Generator:
             for teamId in range(offsetTeamId, offsetTeamId + maxTeamId):
                 name = str(teamId) + "_" + str(divisionId)
                 acronym = str(teamId)
+                seed = teamId - offsetTeamId
+                city = "DummyTown"
                 color = "#00ff00"
-                data.append((teamId, divisionId, name, acronym, color))
+                data.append((teamId, divisionId, name, acronym, seed, city, color))
             offsetTeamId += maxTeamId
         self._insert(table, data)
 
@@ -159,13 +189,13 @@ class Generator:
         table = "ranking"
         data = list()
         offsetTeamId = 1
-        for division in self.ctx.divisions:
+        for divisionId, division in enumerate(self.ctx.divisions, 1):
             maxTeamId = division[1]
             rank = 0
             for teamId in range(offsetTeamId, offsetTeamId + maxTeamId):
                 rankingId = teamId
-                roundIndex = 0
-                data.append((rankingId, teamId, rank, roundIndex))
+                roundId = 1
+                data.append((rankingId, teamId, rank, roundId, divisionId))
                 rank += 1
             offsetTeamId += maxTeamId
         self._insert(table, data)
@@ -204,12 +234,15 @@ class Generator:
         table = "slot"
         data = list()
         for slotId, slot in enumerate(self.ctx.slots, 1):
-            divisionId = slot[0]
+            #divisionId = slot[0]
             locationId = slot[1]
             start = slot[2]
             end = slot[3]
             round = slot[4]
-            data.append((slotId, divisionId, locationId, start, end, round))
+            name = "__" + str(slotId) + "__"
+            description = name
+            alternateText = name
+            data.append((slotId, locationId, start, end, round, name, description, alternateText))
         self._insert(table, data)
 
     def _fillGames(self):
@@ -221,8 +254,8 @@ class Generator:
                 matchupId = gameId
                 slotId = gameId
                 notYetStarted = 0
-                gameCompleted = notYetStarted
-                data.append((gameId, matchupId, slotId, gameCompleted))
+                gameState = notYetStarted
+                data.append((gameId, matchupId, slotId, gameState))
                 gameId += 1
         self._insert(table, data)
 
