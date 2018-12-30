@@ -51,8 +51,10 @@ class DatabaseHandler:
             format_strings = ','.join(['\'%s\''] * len(roundStates))
 
             query = "SELECT round.round_id AS round_id \
-                              FROM round " \
-                             " WHERE round_grouporder = (SELECT MIN(round.round_grouporder) FROM round) AND round.division_id = " + str(divisionId) + " AND round.round_state IN (%s) ORDER BY round.round_number ASC LIMIT 1" % format_strings
+                              FROM round \
+                               WHERE round_grouporder = (SELECT MIN(round.round_grouporder) FROM round) \
+                               AND round.division_id = " + str(divisionId) + " AND round.round_state IN (%s) \
+                               ORDER BY round.round_number ASC LIMIT 1" % format_strings #FIXME
            # args = (divisionId,)
             args = tuple(roundStates)
             try:
