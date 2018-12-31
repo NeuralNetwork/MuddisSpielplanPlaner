@@ -36,7 +36,7 @@ class Team:
         return hash(self.name) + hash(self.acronym) + hash(self.teamId)
 
     def toString(self):
-       return str(self.teamId) + "; Teamname: " + self.name + ", Acronym" + self.acronym + ", Teamseed: " + self.seed
+       return str(self.teamId) + "; Teamname: " + self.name + ", Acronym" + self.acronym + ", Teamseed: " + str(self.seed)
 
 
 class MatchUp:

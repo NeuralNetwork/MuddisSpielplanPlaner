@@ -37,11 +37,22 @@ class TestConnectionHandling(unittest.TestCase):
             print(team.name + ", " + team.acronym + ", " + str(team.teamId))
         self.assertGreater(len(teams), 0)
 
-    def test_getListOfGames(self):
+    def test_getListPlayedOfGames(self):
         print("testing gettingListOfPlayedGames")
-        gameStates = [GameState.COMPLETED, GameState.RUNNING]
+        gameStates = [GameState.COMPLETED]
         print(tuple(gameStates))
-        self.instance.getListOfGames(divisionId_Swissdraw, gameStates, divisionId_Swissdraw)
+        games = self.instance.getListOfGames(divisionId_Swissdraw, gameStates)
+        for game in games:
+            print(game.toString())
+        print("#####################################################################")
+
+    def test_getListOfUpcomingGames(self):
+        print("testing gettingListOfUpcomingGames")
+        gameStates = [GameState.NOT_YET_STARTED]
+        print(tuple(gameStates))
+        games = self.instance.getListOfGames(divisionId_Swissdraw, gameStates)
+        for game in games:
+            print(game.toString())
         print("#####################################################################")
 
     def test_getGames(self):

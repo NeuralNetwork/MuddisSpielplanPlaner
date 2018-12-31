@@ -186,21 +186,23 @@ class DatabaseHandler:
                     gameStateStringList += ",%s"
 
             format_strings = ','.join(['\'%s\''] * len(gameStates))
-            query = "SELECT team1.team_name AS team1_name, team1.team_acronym AS team1_acronym, team1.team_id AS team1_id,  \
-                        team2.team_name AS team2_name, team2.team_acronym AS team2_acronym, team2.team_id AS team2_id, \
-                        matchup.matchup_id AS matchup_id, matchup.matchup_team1_timeouts AS team1_timeouts, matchup.matchup_team1_score AS team1_score, matchup.matchup_team2_timeouts AS team2_timeouts, matchup.matchup_team2_score AS team2_score, \
-                        slot.slot_id AS slot_id, slot.slot_start AS slot_start, slot.slot_end AS slot_end, slot.location_id AS location_id, \
-                        round.round_number AS round_number, \
-                        game.game_id AS game_id\
-                        FROM game \
-                        INNER JOIN matchup ON game.matchup_id = matchup.matchup_id \
-                        INNER JOIN team AS team1 ON matchup.matchup_team1_id = team1.team_id \
-                        INNER JOIN team AS team2 ON matchup.matchup_team2_id = team2.team_id \
-                        INNER JOIN slot ON game.slot_id = slot.slot_id \
-                        INNER JOIN round ON slot.round_id = round.round_id \
-                        WHERE game.game_state IN ("+gameStateStringList+") "\
-                        "AND round.division_id = %s"
+            query = "SELECT team1.team_name AS team1_name, team1.team_acronym AS team1_acronym, team1.team_id AS team1_id,  team1.team_seed AS team1_seed, "\
+                    "team2.team_name AS team2_name, team2.team_acronym AS team2_acronym, team2.team_id AS team2_id, team2.team_seed AS team2_seed, "\
+                    "matchup.matchup_id AS matchup_id, matchup.matchup_team1_timeouts AS team1_timeouts, "\
+                    "matchup.matchup_team1_score AS team1_score, matchup.matchup_team2_timeouts AS team2_timeouts, "\
+                    "matchup.matchup_team2_score AS team2_score, slot.slot_id AS slot_id, "\
+                    "slot.slot_start AS slot_start, slot.slot_end AS slot_end, slot.location_id AS location_id, "\
+                    "round.round_number AS round_number, game.game_id AS game_id "\
+                    "FROM game "\
+                    "INNER JOIN matchup ON game.matchup_id = matchup.matchup_id "\
+                    "INNER JOIN team AS team1 ON matchup.matchup_team1_id = team1.team_id "\
+                    "INNER JOIN team AS team2 ON matchup.matchup_team2_id = team2.team_id "\
+                    "INNER JOIN slot ON game.slot_id = slot.slot_id "\
+                    "INNER JOIN round ON slot.round_id = round.round_id "\
+                    "WHERE game.game_state IN ("+gameStateStringList+") "\
+                    "AND round.division_id = %s"
 
+            print(query)
             gameStateArgs = ()
             for x in gameStates:
                 gameStateArgs += (x,)
@@ -212,8 +214,8 @@ class DatabaseHandler:
                 row = cursor.fetchone() 
                 while row is not None:
                     #print(row)
-                    team1 = Team(row["team1_name"], row["team1_acronym"], row["team1_id"])
-                    team2 = Team(row["team2_name"], row["team2_acronym"], row["team2_id"])
+                    team1 = Team(row["team1_name"], row["team1_acronym"], row["team1_id"], row["team1_seed"])
+                    team2 = Team(row["team2_name"], row["team2_acronym"], row["team2_id"], row["team2_seed"])
                     matchup = MatchUp(team1, team2, row["matchup_id"])
                     slot = Slot(row["slot_start"], row["slot_end"], row["location_id"], row["slot_id"], row["round_number"])
                     result = Result(row["matchup_id"], row["team1_score"], row["team2_score"], row["team1_timeouts"], row["team2_timeouts"])
