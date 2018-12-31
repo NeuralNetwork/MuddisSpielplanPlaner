@@ -48,23 +48,21 @@ class TestConnectionHandling(unittest.TestCase):
 
     def test_getListOfUpcomingGames(self):
         print("testing gettingListOfUpcomingGames")
-        gameStates = [GameState.NOT_YET_STARTED]
+        gameStates = [GameState.NOT_YET_STARTED, GameState.RUNNING]
         print(tuple(gameStates))
         games = self.instance.getListOfGames(divisionId_Swissdraw, gameStates)
         for game in games:
             print(game.toString())
         print("#####################################################################")
 
-    def test_getGames(self):
-        print("testing running game")
-        self.instance.getListOfGames(divisionId_Swissdraw, [GameState.RUNNING])
 
     def test_getRunningGamesInLocationFromDatabase(self):
         print("testing running game with getting location from db")
         locations = self.instance.getListOfLocations()
         location = locations[0].locationId
         print(location)
-        games = self.instance.getListOfGames(divisionId_Swissdraw, [GameState.RUNNING], location)
+        gameStates = [GameState.NOT_YET_STARTED, GameState.RUNNING, GameState.COMPLETED]
+        games = self.instance.getListOfGames(divisionId_Swissdraw, gameStates, location)
         for game in games:
             print(game.toString())
 

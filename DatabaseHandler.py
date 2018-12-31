@@ -171,11 +171,11 @@ class DatabaseHandler:
 
     def getListOfGames(self, divisionId: int, gameStates: List[GameState], locationId: int = None)->List[Game]:
 
-        if(divisionId== None or divisionId < 0):
+        if divisionId == None or divisionId < 0:
             raise ValueError("divisionId must not be None nor negative")
         if locationId == None:
             locationId = -1
-        if(len(gameStates) <= 0):
+        if len(gameStates) <= 0:
             gameStates = [GameState.NOT_YET_STARTED, GameState.COMPLETED, GameState.RUNNING]
 
         games = []
@@ -187,6 +187,12 @@ class DatabaseHandler:
                     gameStateStringList += "%s"
                 else:
                     gameStateStringList += ",%s"
+
+            gameStateArgs = ()
+            for gameState in gameStates:
+                gameStateArgs += (gameState,)
+
+
 
             format_strings = ','.join(['\'%s\''] * len(gameStates))
             query = "SELECT team1.team_name AS team1_name, team1.team_acronym AS team1_acronym, team1.team_id AS team1_id,  team1.team_seed AS team1_seed, "\
@@ -205,11 +211,11 @@ class DatabaseHandler:
                     "WHERE game.game_state IN ("+gameStateStringList+") "\
                     "AND round.division_id = %s"
 
-            print(query)
-            gameStateArgs = ()
-            for x in gameStates:
-                gameStateArgs += (x,)
             args = gameStateArgs + (divisionId,)
+
+            if locationId >= 0:
+                query += " AND slot.location_id = %s"
+                args += (locationId,)
 
             try:
                 cursor = self.conn.cursor(dictionary=True)
