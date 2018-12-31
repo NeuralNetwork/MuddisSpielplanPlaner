@@ -1,6 +1,7 @@
 import unittest
 from DatabaseHandler import DatabaseHandler
 from TournamentDescriptionClasses import Slot, MatchUp, Result, Game, Team
+from States import GameState
 import time
 
 def minutesToTime(minutes: int):
@@ -18,7 +19,8 @@ class TestConnectionHandling(unittest.TestCase):
 
     def test_getListOfSlots(self):
         print("Testing getting list of upcoming slots")
-        slots = self.instance.getListOfSlotsOfUpcomingRound()
+        firstDivisionId = 1
+        slots = self.instance.getListOfSlotsOfUpcomingRound(firstDivisionId)
         for slot in slots:
             start = minutesToTime(slot.start)
             end = minutesToTime(slot.end)
@@ -29,22 +31,17 @@ class TestConnectionHandling(unittest.TestCase):
         
     def test_getListOfAllTeams(self):
         print("testing getting list of all teams")
-        teams = self.instance.getListOfAllTeams()
+        firstDivisionId = 1
+        teams = self.instance.getListOfAllTeams(firstDivisionId)
         for team in teams:
             print(team.name + ", " + team.acronym + ", " + str(team.teamId))
         self.assertGreater(len(teams),0)
 
-    def test_insertSlot(self):
-        print("testing insertion of slots")
-        startTime = (2019, 1, 15, 9, 10, 0, 0, 0, 0) #15.01.2019 9:00:00
-        start = time.mktime( startTime )
-        end = start + (30*60);
-        slot = Slot(start, end, 2, 0, 2) # slot_id will be ignored (autoincrement primary)
-        self.instance.insertSlot(slot,1) #insertSlot in Debug mode
-
     def test_getListOfGames(self):
         print("testing gettingListOfPlayedGames")
-        self.instance.getListOfGames()
+        firstDivisionId = 1
+        gameStates = [GameState.COMPLETED, GameState.RUNNING]
+        self.instance.getListOfGames(firstDivisionId, gameStates)
 
     @classmethod    
     def tearDownClass(self):
