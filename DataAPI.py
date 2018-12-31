@@ -25,11 +25,12 @@ class DataAPI(object):
     def getSwissDrawDivisions(self):        
         return self.databaseHandler.getSwissDrawDivisions()
 
-    def getFinalizeGameTime(self, round_id: int):
-        return self.databaseHandler.getFinalzeGameTime(round_id)
+    def getFinalizeGameTime(self, division_id: int, round_number: int)->int:
+        return self.databaseHandler.getFinalzeGameTime(division_id, round_number)
 
-    def getRoundIdToBeOptimized(self, divisionId: int, roundStates: List[GameState] = [RoundState.PREDICTION, RoundState.UNKNOWN])->int:
-        return self.databaseHandler.getRoundIdToBeOptimized(divisionId, roundStates)
+    def getRoundNumberToBeOptimized(self, divisionId: int,
+                                    roundStates: List[GameState] = (RoundState.PREDICTION, RoundState.UNKNOWN))->int:
+        return self.databaseHandler.getRoundNumberToBeOptimized(divisionId, roundStates)
      
     def getListOfAllTeams(self, divisionId)->List[Team]:
         """" getListOfAllTeams  gets all Teams (of division) stored in data source
@@ -183,5 +184,5 @@ class DataAPI(object):
                 """
         return self.databaseHandler.insertRanking(ranked_teamlist, round_number, division_id, debug)
 
-    def setRoundState(self, roundId: int, roundState: RoundState, debug: int = 0)->None:
-        self.databaseHandler.setRoundState(roundId, roundState, debug)
+    def setRoundState(self, round_number: int, division_id: int, roundState: RoundState, debug: int = 0)->None:
+        self.databaseHandler.setRoundState(round_number, division_id, roundState, debug)

@@ -1,4 +1,4 @@
-from DataAPI import DataAPI, GameState
+from DataAPI import DataAPI, GameState, RoundState
 from TournamentDescriptionClasses import Game
 from RankingGenerator import generateNewRanking
 from MatchUpGenerator import MatchUpGenerator
@@ -7,18 +7,17 @@ import time
 
 api = DataAPI()
 
-for divisionId in api.getSwissDrawDivisions():
+for division in api.getSwissDrawDivisions():
+    divisionId = division.divisionId
     # create ranking
     teams = api.getListOfAllTeams(divisionId)
     #TODO get list of games in one action to prevent possible race conditions
-    gamesRelevantForRanking = api.getListOfGames(gameState=GameState.COMPLETED, divisionId=divisionId)
-    gamesRelevantForRanking.extend(api.getListOfGames(gameState=GameState.RUNNING, divisionId=divisionId))
+    gamesRelevantForRanking = api.getListOfGames(gameStates=[GameState.COMPLETED, GameState.RUNNING], divisionId=divisionId)
     ranking = generateNewRanking(teams, gamesRelevantForRanking)
 
     # create matchups
-    allGames = api.getListOfGames(gameState=GameState.COMPLETED, divisionId=divisionId)
-    allGames.extend(api.getListOfGames(gameState=GameState.RUNNING, divisionId=divisionId))
-    allGames.extend(api.getListOfGames(gameState=GameState.NOT_YET_STARTED, divisionId=divisionId))
+    allGames = api.getListOfGames(gameStates=[GameState.COMPLETED, GameState.RUNNING, GameState.NOT_YET_STARTED],
+                                  divisionId=divisionId)
     matchUpGenerator = MatchUpGenerator(ranking, allGames)
     futureMatchUps = matchUpGenerator.generateMatchUps(True)
 
@@ -32,9 +31,13 @@ for divisionId in api.getSwissDrawDivisions():
     nextGames = scheduler.maximizeGain(allGames, futureSlots, futureMatchUps)
 
     # update games in DB
-    if api.getFinalizeGameTime() <= time.time():
-        gameState = GameState.NOT_YET_STARTED
+    gameState = GameState.NOT_YET_STARTED
+    roundNumber = api.getRoundNumberToBeOptimized(divisionId)
+
+    api.insertNextGames(nextGames, gameState)
+    api.insertRanking(ranking, roundNumber, divisionId)
+
+    if api.getFinalizeGameTime(divisionId, roundNumber) > time.time():
+        api.setRoundState(roundNumber, divisionId, RoundState.FINAL_PREDICTION)
     else:
-        gameState = GameState.PREDICTION
-    for nextGame in nextGames:
-        api.insertNextGame(nextGame, gameState)
+        api.setRoundState(roundNumber, divisionId, RoundState.PREDICTION)

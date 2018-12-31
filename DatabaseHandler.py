@@ -25,10 +25,13 @@ class DatabaseHandler:
             self.disconnect()
 
     ###################################################################################
-    def getFinalzeGameTime(self, round_id: int)->int:
-        if round_id is None or round_id < 0:
-            raise ValueError("round_number must not be None nor negative")
-        if self.conn.is_connected():   
+    def getFinalzeGameTime(self, division_id: int, round_number: int)->int:
+        if division_id is None or division_id < 0:
+            raise ValueError("round_number must not be None or division_id")
+        if round_number is None or round_number < 0:
+            raise ValueError("round_number must not be None or negative")
+        if self.conn.is_connected():
+            round_id = self._getRoundId(division_id, round_number)
             query = "SELECT round_fixnextgametime FROM round WHERE round.round_id = %s LIMIT 1"
             args = (round_id,)
             cursor = self.conn.cursor(dictionary=True)
@@ -39,11 +42,11 @@ class DatabaseHandler:
             raise NoDatabaseConnection()
         return getFinalzeGameTime
 
-    def getRoundIdToBeOptimized(self, divisionId: int,
-                                roundStates: List[GameState] = (RoundState.PREDICTION, RoundState.UNKNOWN))->int:
+    def getRoundNumberToBeOptimized(self, divisionId: int,
+                                    roundStates: List[GameState] = (RoundState.PREDICTION, RoundState.UNKNOWN))->int:
         if divisionId is None or divisionId < 0:
-            raise ValueError("divisionId must not be None nor negative")
-        round_id = None
+            raise ValueError("divisionId must not be None or negative")
+        round_number = None
 
         if self.conn.is_connected():
             # Find slotsof next round
@@ -65,7 +68,7 @@ class DatabaseHandler:
                 else:
                     roundStateStringList += ",%s"
 
-            query = "SELECT round.round_id AS round_id "\
+            query = "SELECT round.round_number AS round_number "\
                                "FROM round "\
                                "WHERE round_grouporder = "\
                                     "(SELECT MIN(round.round_grouporder) "\
@@ -83,7 +86,7 @@ class DatabaseHandler:
                 cursor.execute(query, args)
                 row = cursor.fetchone()
                 if row is not None:
-                    round_id = row["round_id"]
+                    round_number = row["round_number"]
 
             except Error as e:
                 print(e)
@@ -92,7 +95,7 @@ class DatabaseHandler:
                 cursor.close()
         else:
             raise NoDatabaseConnection()
-        return round_id
+        return round_number
 
 
     ###################################################################################
@@ -398,24 +401,13 @@ class DatabaseHandler:
         if round_number is None or round_number < 0:
             raise ValueError("round_number must not be None nor negative")
         status = True
-        round_id = -1
 
         if self.conn.is_connected():
-            queryRoundId = "SELECT round_id FROM round WHERE round.round_number = %s AND round.division_id = %s LIMIT 1"
-
+            round_id = self._getRoundId(divisionId, round_number)
             queryRanking = "REPLACE INTO ranking (team_id ,ranking_rank, round_id, division_id) " \
-                    "VALUES(%s, %s, %s, %s) "
-
+                           "VALUES(%s, %s, %s, %s) "
             rankCounter = 1
             try:
-                cursor = self.conn.cursor(dictionary=True)
-                argsRoundId = (round_number, divisionId)
-                cursor.execute(queryRoundId, argsRoundId)
-                row = cursor.fetchone()
-                round_id = row["round_id"]
-
-
-
                 for team in ranked_teamlist:
                     self.conn.autocommit = False
                     cursor = self.conn.cursor()
@@ -433,7 +425,7 @@ class DatabaseHandler:
             except Error as error:
                 self.conn.rollback()
                 status = False
-                print(error)
+                raise error
 
             finally:
                 if self.conn.is_connected():
@@ -443,19 +435,19 @@ class DatabaseHandler:
 
         return status
 
-    def setRoundState(self, round_id: int, round_state: RoundState, debug: int = 0)->None:
-        status = True
-        if round_id is None or round_id < 0:
-            raise ValueError("round_id must not be None nor negative")
+    def setRoundState(self, round_number: int, division_id: int, round_state: RoundState, debug: int = 0)->None:
+        if round_number is None or round_number < 0:
+            raise ValueError("round_number must not be None or negative")
 
         if self.conn.is_connected():
+            round_id = self._getRoundId(division_id, round_number)
             query = "UPDATE round "\
                     "SET round_state = %s "\
                     "WHERE round_id = %s"
 
             try:
                 cursor = self.conn.cursor(dictionary=True)
-                args= (round_state, round_id)
+                args = (round_state, round_id)
                 cursor.execute(query, args)
 
                 if debug == 0:
@@ -466,14 +458,12 @@ class DatabaseHandler:
 
             except Error as error:
                 self.conn.rollback()
-                print(error)
+                raise error
             finally:
                 if self.conn.is_connected():
                     cursor.close()
         else:
             raise NoDatabaseConnection()
-
-        return True
 
 #######################################################################################
             
@@ -526,3 +516,28 @@ class DatabaseHandler:
         else:
             raise Exception('{0} not found in the {1} file'.format(section, filename)) 
         return db
+
+    def _getRoundId(self, division_id: int, round_number: int):
+        if round_number is None or round_number < 0:
+            raise ValueError("round_number must not be None nor negative")
+
+        if self.conn.is_connected():
+            queryRoundId = "SELECT round_id FROM round WHERE round.round_number = %s AND round.division_id = %s LIMIT 1"
+
+            try:
+                cursor = self.conn.cursor(dictionary=True)
+                argsRoundId = (round_number, division_id)
+                cursor.execute(queryRoundId, argsRoundId)
+                row = cursor.fetchone()
+                round_id = row["round_id"]
+            except Error as error:
+                self.conn.rollback()
+                raise error
+
+            finally:
+                if self.conn.is_connected():
+                    cursor.close()
+        else:
+            raise NoDatabaseConnection()
+
+        return round_id

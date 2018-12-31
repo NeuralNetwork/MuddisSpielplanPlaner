@@ -82,7 +82,7 @@ class TestConnectionHandling(unittest.TestCase):
 
     def test_getFinalizedGameTime(self):
         print("testing getting finalizedGameTime")
-        finalizedGameTime = self.instance.getFinalizeGameTime(2)
+        finalizedGameTime = self.instance.getFinalizeGameTime(1, 2)
         print(finalizedGameTime)
 
     def test_insertGame(self):
@@ -104,7 +104,7 @@ class TestConnectionHandling(unittest.TestCase):
         slots = self.instance.getListOfSlotsOfUpcomingRound(divisionId_Swissdraw)  # get upcompiung slots
         if len(slots) > 0:
             matchup = MatchUp(teams[0], teams[1])  # set up matchups with 2 (random, the first 2) teams from all teams
-            games=[];
+            games=[]
             for x in range(3):
                 game: Game = Game(matchup, result, slots[0])  # set up game with matchup, result, and the first slot
                 games.append(game)
@@ -112,19 +112,19 @@ class TestConnectionHandling(unittest.TestCase):
         else:
             print("no available Slots found")
 
-    def test_insertGames(self):
+    def test_insertRanking(self):
         print("########## testing inserting ranking ############")
         teams = self.instance.getListOfAllTeams(divisionId_Swissdraw)  # get a list of teams
-        print(self.instance.insertRanking(teams, 1, divisionId_Swissdraw, 1))  # insert nextgames in debug mode (no real insertion in db). don' use second parameter for productive system
+        print(self.instance.insertRanking(teams, 1, divisionId_Swissdraw, 1))  # insert next games in debug mode (no real insertion in db). don' use second parameter for productive system
 
     def test_getRoundId(self):
         print("########## testing getting Round ID ############")
-        round_id = self.instance.getRoundIdToBeOptimized(1)
-        print(str(round_id))
+        round_number = self.instance.getRoundNumberToBeOptimized(1)
+        print(str(round_number))
 
     def test_setRoundState(self):
         print("########## testing setting Round State ############")
-        self.instance.setRoundState(1, RoundState.PUBLISHED, 1)
+        self.instance.setRoundState(1, 1, RoundState.PUBLISHED, True)
         print("setted Round")
 
     @classmethod    
