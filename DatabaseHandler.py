@@ -177,6 +177,14 @@ class DatabaseHandler:
 
         games = []
         if self.conn.is_connected():
+
+            gameStateStringList = ""
+            for x in range(len(gameStates)):
+                if x == 0:
+                    gameStateStringList += "%s"
+                else:
+                    gameStateStringList += ",%s"
+
             format_strings = ','.join(['\'%s\''] * len(gameStates))
             query = "SELECT team1.team_name AS team1_name, team1.team_acronym AS team1_acronym, team1.team_id AS team1_id,  \
                         team2.team_name AS team2_name, team2.team_acronym AS team2_acronym, team2.team_id AS team2_id, \
@@ -185,14 +193,18 @@ class DatabaseHandler:
                         round.round_number AS round_number, \
                         game.game_id AS game_id\
                         FROM game \
-                        INNER JOIN matchup ON game.matchup_id = matchup.matchup_id\
+                        INNER JOIN matchup ON game.matchup_id = matchup.matchup_id \
                         INNER JOIN team AS team1 ON matchup.matchup_team1_id = team1.team_id \
                         INNER JOIN team AS team2 ON matchup.matchup_team2_id = team2.team_id \
                         INNER JOIN slot ON game.slot_id = slot.slot_id \
                         INNER JOIN round ON slot.round_id = round.round_id \
-                        WHERE game.game_state IN (%s)" % format_strings
+                        WHERE game.game_state IN ("+gameStateStringList+") "\
+                        "AND round.division_id = %s"
 
-            args = tuple(gameStates)
+            gameStateArgs = ()
+            for x in gameStates:
+                gameStateArgs += (x,)
+            args = gameStateArgs + (divisionId,)
 
             try:
                 cursor = self.conn.cursor(dictionary=True)
