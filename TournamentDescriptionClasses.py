@@ -30,10 +30,13 @@ class Team:
         self.seed = seed
 
     def __eq__(self, other):
-        return self.name == other.name and self.acronym == other.acronym and self.teamId == other.teamId
+        return self.name == other.name and \
+               self.acronym == other.acronym and \
+               self.teamId == other.teamId and \
+               self.seed == other.seed
 
     def __hash__(self):
-        return hash(self.name) + hash(self.acronym) + hash(self.teamId)
+        return hash(self.name) + hash(self.acronym) + hash(self.teamId) + hash(self.seed)
 
     def toString(self):
        return str(self.teamId) + "; Teamname: " + self.name + ", Acronym" + self.acronym + ", Teamseed: " + str(self.seed)
