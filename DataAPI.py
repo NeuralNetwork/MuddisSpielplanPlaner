@@ -11,9 +11,9 @@ from typing import List
 class DataAPI(object):
     """ DataAPI provides access to the data source where schedule information is stored  """
 
-    def __init__(self):
+    def __init__(self, forceDBToBeUsed: str = ""):
         """ get DataHandler and initiate connection with data source"""
-        self.databaseHandler = DatabaseHandler()
+        self.databaseHandler = DatabaseHandler(forceDBToBeUsed=forceDBToBeUsed)
         self.databaseHandler.connect()
         print("#############################################################")
        
@@ -186,3 +186,9 @@ class DataAPI(object):
 
     def setRoundState(self, round_number: int, division_id: int, roundState: RoundState, debug: int = 0)->None:
         self.databaseHandler.setRoundState(round_number, division_id, roundState, debug)
+
+    def setResult(self, matchupId: int, resultA: int, resultB: int)->None:
+        self.databaseHandler.setResult(matchupId, resultA, resultB)
+
+    def setGameState(self, game_id: int, game_state: int)->None:
+        self.databaseHandler.setGameState(game_id, game_state)

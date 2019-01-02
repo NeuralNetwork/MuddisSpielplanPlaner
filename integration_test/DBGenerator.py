@@ -1,11 +1,18 @@
+import sys
+sys.path.insert(0, "../")
+
 import time
+import multiprocessing
+import updateDB
+from States import RoundState
 from configparser import ConfigParser
 from mysql.connector import MySQLConnection
 from mysql.connector.errors import DatabaseError
+from ResultEntrySimulator import enterResults
 
 class Context:
-    def __init__(self):
-        self.dbName = "invalid_temp_test"
+    def __init__(self, dbName: str):
+        self.dbName = dbName
         self.dbConfigPath = "../includes/config.ini"
         self.dbHost = ""
         self.dbUser = ""
@@ -63,8 +70,8 @@ class Context:
 
 # all Ids in the database start at 1
 class Generator:
-    def __init__(self):
-        self.ctx = Context()
+    def __init__(self, dbName: str):
+        self.ctx = Context(dbName)
         self.conn = MySQLConnection(host=self.ctx.dbHost, user=self.ctx.dbUser, password=self.ctx.dbPassword)
         if not self.conn.is_connected():
             raise Exception("not connected to db")
@@ -92,10 +99,6 @@ class Generator:
         self._fillLocations()
         self._fillSlots()
         self._fillGames()
-
-        # TODO start simulated result entry job
-        # TODO start schedule job
-        # TODO scheduler must insert final_prediction as published (only at test time)
 
     def _lockTable(self, table):
         self.cursor.execute("LOCK TABLES `" + table + "` WRITE")
@@ -259,8 +262,23 @@ class Generator:
                 gameId += 1
         self._insert(table, data)
 
-generator = Generator()
-generator.createDB()
 
-#################
-# publish feld für korrekturen, damit spiele nachträglich händisch einem Slot zugeordnet werden können.
+def resultEntryLoop(dbToBeUsed: str):
+    while True:
+        enterResults(dbToBeUsed)
+
+def swissStuffLoop(dbToBeUsed: str):
+    while True:
+        updateDB.update(dbToBeUsed, RoundState.PUBLISHED)
+
+if __name__ == '__main__':
+    dbName = "invalid_temp_test"
+    generator = Generator(dbName)
+    generator.createDB()
+
+    resultEntryProcess = multiprocessing.Process(target=resultEntryLoop, args=(dbName,), daemon=True)
+    resultEntryProcess.start()
+    swissStuffProcess = multiprocessing.Process(target=swissStuffLoop, args=(dbName,), daemon=True)
+    swissStuffProcess.start()
+
+    #time.sleep(2400)

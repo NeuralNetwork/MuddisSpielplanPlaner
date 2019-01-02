@@ -16,7 +16,8 @@ class NoDatabaseConnection(Exception):
 class DatabaseHandler:    
     module_dir = os.path.dirname(__file__)
 
-    def __init__(self):            
+    def __init__(self, forceDBToBeUsed: str = ""):
+        self._forcedDB = forceDBToBeUsed
         self.conn = MySQLConnection()
 
     def __del__(self):
@@ -471,12 +472,58 @@ class DatabaseHandler:
         else:
             raise NoDatabaseConnection()
 
+    def setResult(self, matchup_id: int, resultA: int, resultB: int, debug: int = 0)->None:
+        if matchup_id is None or matchup_id < 0:
+            raise ValueError("matchup_id must not be None or negative")
+        if resultA is None or resultA < 0:
+            raise ValueError("resultA must not be None or negative")
+        if resultB is None or resultB < 0:
+            raise ValueError("resultB must not be None or negative")
+        if not self.conn.is_connected():
+            raise NoDatabaseConnection
+
+        try:
+            query = "UPDATE matchup SET matchup_team1_score = %s, matchup_team1_score = %s WHERE matchup_id = %s"
+            args = (resultA, resultB, matchup_id)
+            cursor = self.conn.cursor()
+            cursor.execute(query, args)
+            if debug == 0:
+                self.conn.commit()
+        except Error as error:
+            self.conn.rollback()
+            raise error
+        finally:
+            if self.conn.is_connected():
+                cursor.close()
+
+    def setGameState(self, game_id: int, game_state: int, debug: int = 0)->None:
+        if game_id is None or game_id < 0:
+            raise ValueError("game_id must not be None or negative")
+        if game_state != GameState.NOT_YET_STARTED and game_state != GameState.RUNNING and game_state != GameState.COMPLETED:
+            raise ValueError("supplied game_state (" + str(game_state) + ") is not a known GameState")
+
+        try:
+            query = "UPDATE game SET game_state = %s WHERE game_id = %s"
+            args = (game_state, game_id)
+            cursor = self.conn.cursor()
+            cursor.execute(query, args)
+            if debug == 0:
+                self.conn.commit()
+        except Error as error:
+            self.conn.rollback()
+            raise error
+        finally:
+            if self.conn.is_connected():
+                cursor.close()
+
 #######################################################################################
             
     def connect(self)->None:
         """ Connect to MySQL database """
         #read config from file#
         db_config = self.read_db_config()
+        if self._forcedDB != "":
+            db_config["database"] = self._forcedDB
         try:
             conn = MySQLConnection(**db_config, charset='utf8')
             print('Connecting to MySQL database...')
