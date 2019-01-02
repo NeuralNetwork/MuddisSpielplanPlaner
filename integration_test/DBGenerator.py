@@ -281,4 +281,4 @@ if __name__ == '__main__':
     swissStuffProcess = multiprocessing.Process(target=swissStuffLoop, args=(dbName,), daemon=True)
     swissStuffProcess.start()
 
-    #time.sleep(2400)
+    time.sleep(2400)
