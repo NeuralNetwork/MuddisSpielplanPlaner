@@ -47,7 +47,7 @@ class Context:
                     startTime = self.locations[locationId][1]
                     endTime = startTime + (self.playTime * 60.0)
                     self.locations[locationId][1] = endTime
-                    self.slots.append((divisionId, locationId+1, startTime, endTime, round))
+                    self.slots.append((divisionId, locationId+1, startTime, endTime, (divisionId-1) * self.rounds + round))
                     locationId += 1
                     locationId %= len(self.locations)
                     maxEndTime = max(maxEndTime, endTime)
@@ -156,7 +156,7 @@ class Generator:
         roundId = 1
         for divisionId in range(1, len(self.ctx.divisions)+1):
             for fixNextGameTimeIndex in range(0, self.ctx.rounds):
-                roundNumber = roundId - 1
+                roundNumber = fixNextGameTimeIndex
                 roundColor = "#0000ff"
                 divisionName = self.ctx.divisions[divisionId-1][0]
                 roundGroup = divisionName + "_" + str(roundNumber)
