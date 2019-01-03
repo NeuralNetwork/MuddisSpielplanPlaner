@@ -9,6 +9,14 @@ import time
 def update(forceDBToBeUsed: str = "", finalRoundState: RoundState = RoundState.FINAL_PREDICTION):
     api = DataAPI(forceDBToBeUsed=forceDBToBeUsed)
 
+    # check if optimizations need to be done
+    stillRoundsToBeOptimized = False
+    for division in api.getSwissDrawDivisions():
+        if api.getRoundNumberToBeOptimized(division.divisionId) is not None:
+            stillRoundsToBeOptimized = True
+    if not stillRoundsToBeOptimized:
+        return False
+
     for division in api.getSwissDrawDivisions():
         divisionId = division.divisionId
         # create ranking
@@ -16,6 +24,10 @@ def update(forceDBToBeUsed: str = "", finalRoundState: RoundState = RoundState.F
         #TODO get list of games in one action to prevent possible race conditions
         gamesRelevantForRanking = api.getListOfGames(gameStates=[GameState.COMPLETED, GameState.RUNNING], divisionId=divisionId)
         ranking = generateNewRanking(teams, gamesRelevantForRanking)
+        roundNumber = api.getRoundNumberToBeOptimized(divisionId)
+        if roundNumber is None:
+            continue
+        api.insertRanking(ranking, roundNumber, divisionId)
 
         # create matchups
         allGames = api.getListOfGames(gameStates=[GameState.COMPLETED, GameState.RUNNING, GameState.NOT_YET_STARTED],
@@ -27,6 +39,9 @@ def update(forceDBToBeUsed: str = "", finalRoundState: RoundState = RoundState.F
         futureSlots = []
         for slot in api.getListOfSlotsOfUpcomingRound(divisionId=divisionId):
             futureSlots.append(Game(None, None, slot))
+        if len(futureSlots) == 0:
+            _setRoundState(roundNumber, divisionId, api, finalRoundState)
+            continue
 
         #TODO do something sensible if there are no games to be scheduled
         scheduler = SwissGameScheduler()
@@ -34,12 +49,15 @@ def update(forceDBToBeUsed: str = "", finalRoundState: RoundState = RoundState.F
 
         # update games in DB
         gameState = GameState.NOT_YET_STARTED
-        roundNumber = api.getRoundNumberToBeOptimized(divisionId)
-
         api.insertNextGames(nextGames, gameState)
-        api.insertRanking(ranking, roundNumber, divisionId)
 
-        if api.getFinalizeGameTime(divisionId, roundNumber) > time.time():
-            api.setRoundState(roundNumber, divisionId, RoundState.PREDICTION)
-        else:
-            api.setRoundState(roundNumber, divisionId, finalRoundState)
+        _setRoundState(roundNumber, divisionId, api, finalRoundState)
+
+    return True
+
+
+def _setRoundState(roundNumber: int, divisionId: int, api, finalRoundState)->None:
+    if api.getFinalizeGameTime(divisionId, roundNumber) > time.time():
+        api.setRoundState(roundNumber, divisionId, RoundState.PREDICTION)
+    else:
+        api.setRoundState(roundNumber, divisionId, finalRoundState)

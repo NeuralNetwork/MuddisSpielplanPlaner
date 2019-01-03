@@ -197,7 +197,8 @@ class Generator:
             rank = 0
             for teamId in range(offsetTeamId, offsetTeamId + maxTeamId):
                 rankingId = teamId
-                roundId = 1
+                round = 1
+                roundId = (divisionId-1) * self.ctx.rounds + round
                 data.append((rankingId, teamId, rank, roundId, divisionId))
                 rank += 1
             offsetTeamId += maxTeamId
@@ -267,9 +268,6 @@ def resultEntryLoop(dbToBeUsed: str):
     while True:
         enterResults(dbToBeUsed)
 
-def swissStuffLoop(dbToBeUsed: str):
-    while True:
-        updateDB.update(dbToBeUsed, RoundState.PUBLISHED)
 
 if __name__ == '__main__':
     dbName = "invalid_temp_test"
@@ -278,7 +276,7 @@ if __name__ == '__main__':
 
     resultEntryProcess = multiprocessing.Process(target=resultEntryLoop, args=(dbName,), daemon=True)
     resultEntryProcess.start()
-    swissStuffProcess = multiprocessing.Process(target=swissStuffLoop, args=(dbName,), daemon=True)
-    swissStuffProcess.start()
 
-    time.sleep(2400)
+    optimizationSuccess = True
+    while optimizationSuccess:
+        optimizationSuccess = updateDB.update(dbName, RoundState.PUBLISHED)
