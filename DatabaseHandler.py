@@ -103,7 +103,7 @@ class DatabaseHandler:
     def getListOfSlotsOfUpcomingRound(self, divisionId: int)->List[Slot]:
         if divisionId is None or divisionId < 0:
             raise ValueError("divisionId must not be None nor negative")
-        round_number = -1
+        round_number = 1000000000
         slots = []
         swissdraw_game = 1
         if self.conn.is_connected():
@@ -122,8 +122,10 @@ class DatabaseHandler:
                 cursor.execute(query, args)
                 row = cursor.fetchone()
                 while row is not None:
-                    if row["round_state"] == RoundState.PREDICTION:
-                        round_number = row["round_number"] if (row["round_number"] >= 0) else round_number
+                    if row["round_state"] != RoundState.FINAL_PREDICTION and row["round_state"] != RoundState.PUBLISHED:
+                        round_number = row["round_number"] if row["round_number"] < round_number else round_number
+                        if round_number < 0:
+                            raise ValueError("round_number was " + str(round_number) + " but should have been >= 0")
                     row = cursor.fetchone()
             except Error as e:
                 print(e)
@@ -132,24 +134,11 @@ class DatabaseHandler:
             query = "SELECT slot.slot_start AS start, slot.slot_end AS end, slot.location_id, slot.slot_id, \
                             outer_round.round_number AS round_number \
                         FROM slot \
-                        INNER JOIN round outer_round ON outer_round.round_id = slot.round_id"
-
-            # no predicted game - find smallest round_number of slots without games (WHERE slot_id is not in slot_ids)
-            if round_number == -1:
-                query += " WHERE outer_round.division_id = %s \
-                            AND outer_round.round_swissdrawGames = %s\
-                            AND outer_round.round_number = \
-                                (SELECT min(inner_round.round_number) \
-                                    FROM slot \
-                                    INNER JOIN round inner_round ON slot.round_id = inner_round.round_id \
-                                    WHERE slot_id NOT IN (SELECT slot_id FROM game WHERE slot_id IS NOT NULL)\
-                                    ORDER BY inner_round.round_number) "
-                args = (divisionId, swissdraw_game,)
-            else:
-                query += " WHERE outer_round.division_id = %s \
-                            AND outer_round.round_number = %s \
-                            AND outer_round.round_swissdrawGames = %s"
-                args = (divisionId, round_number, swissdraw_game,)
+                        INNER JOIN round outer_round ON outer_round.round_id = slot.round_id \
+                        WHERE outer_round.division_id = %s \
+                        AND outer_round.round_number = %s \
+                        AND outer_round.round_swissdrawGames = %s"
+            args = (divisionId, round_number, swissdraw_game,)
 
             try:
                 cursor = self.conn.cursor(dictionary=True)
@@ -162,7 +151,7 @@ class DatabaseHandler:
             except Error as e:
                 print(e)
             finally:
-                    cursor.close()
+                cursor.close()
         else:
             raise NoDatabaseConnection()
 
