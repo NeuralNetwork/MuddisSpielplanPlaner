@@ -40,6 +40,6 @@ def update(forceDBToBeUsed: str = "", finalRoundState: RoundState = RoundState.F
         api.insertRanking(ranking, roundNumber, divisionId)
 
         if api.getFinalizeGameTime(divisionId, roundNumber) > time.time():
-            api.setRoundState(roundNumber, divisionId, finalRoundState)
-        else:
             api.setRoundState(roundNumber, divisionId, RoundState.PREDICTION)
+        else:
+            api.setRoundState(roundNumber, divisionId, finalRoundState)
