@@ -202,6 +202,7 @@ class DatabaseHandler:
                     "AND round.division_id = %s"
 
             args = gameStateArgs + (divisionId,)
+            #print(query)
 
             if locationId >= 0:
                 query += " AND slot.location_id = %s"
@@ -330,10 +331,10 @@ class DatabaseHandler:
             gameArgs = (cursor.lastrowid, game.slot.slotId, gamestate,)
             cursor.execute(gameQuery, gameArgs)
 
-            if cursor.lastrowid:
-                print('last insert id', cursor.lastrowid)
-            else:
-                print('last insert id not found')
+            #if cursor.lastrowid:
+             #   print('last insert id', cursor.lastrowid)
+            #else:
+            #    print('last insert id not found')
             if debug == 0:            
                 self.conn.commit()
             else:
@@ -400,14 +401,15 @@ class DatabaseHandler:
 
         if self.conn.is_connected():
             round_id = self._getRoundId(divisionId, round_number)
-            queryRanking = "REPLACE INTO ranking (team_id ,ranking_rank, round_id, division_id) " \
-                           "VALUES(%s, %s, %s, %s) "
+            #queryRanking = "REPLACE INTO ranking (team_id ,ranking_rank, round_id, division_id) " \
+             #              "VALUES(%s, %s, %s, %s) "
+            queryRanking = "INSERT INTO ranking (team_id ,ranking_rank, round_id, division_id) VALUES (%s, %s, %s, %s) ON DUPLICATE KEY UPDATE ranking_rank=%s"
             rankCounter = 1
             try:
                 for team in ranked_teamlist:
                     self.conn.autocommit = False
                     cursor = self.conn.cursor()
-                    argsRanking = (team.teamId, rankCounter, round_id, divisionId)
+                    argsRanking = (team.teamId, rankCounter, round_id, divisionId, rankCounter)
                     cursor.execute(queryRanking, argsRanking)
                     rankCounter += 1
 
