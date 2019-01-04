@@ -318,8 +318,8 @@ class DatabaseHandler:
         status = True
         matchupQuery = "INSERT INTO matchup(matchup_team1_id ,matchup_team2_id) " \
                     "VALUES(%s,%s)"
-        gameQuery = "REPLACE INTO game(matchup_id ,slot_id, game_state) " \
-                    "VALUES(%s,%s,%s) "       
+        #gameQuery = "INSERT INTO game (matchup_id ,slot_id, game_state) VALUES (%s, %s, %s) ON DUPLICATE KEY UPDATE game_state =%s"
+        gameQuery = "INSERT INTO game (matchup_id ,slot_id, game_state) VALUES (%s, %s, %s) ON DUPLICATE KEY UPDATE game_state =%s"
         
         try:    
             self.conn.autocommit = False
@@ -328,7 +328,7 @@ class DatabaseHandler:
             matchupArgs = (game.matchup.first.teamId, game.matchup.second.teamId)        
             cursor.execute(matchupQuery, matchupArgs)
 
-            gameArgs = (cursor.lastrowid, game.slot.slotId, gamestate,)
+            gameArgs = (cursor.lastrowid, game.slot.slotId, gamestate, gamestate,)
             cursor.execute(gameQuery, gameArgs)
 
             #if cursor.lastrowid:
@@ -356,8 +356,9 @@ class DatabaseHandler:
         savecounter = 0
         matchupQuery = "INSERT INTO matchup(matchup_team1_id ,matchup_team2_id) " \
                        "VALUES(%s,%s)"
-        gameQuery = "REPLACE INTO game(matchup_id ,slot_id, game_state) " \
-                    "VALUES(%s,%s,%s) "
+       # gameQuery = "REPLACE INTO game(matchup_id ,slot_id, game_state) " \
+        #            "VALUES(%s,%s,%s) "
+        gameQuery = "INSERT INTO game (matchup_id ,slot_id, game_state) VALUES (%s, %s, %s) ON DUPLICATE KEY UPDATE game_state =%s"
 
         try:
             for game in games:
@@ -371,6 +372,7 @@ class DatabaseHandler:
                     raise ValueError("no last inserted id found")
 
                 gameArgs = (cursor.lastrowid, game.slot.slotId, gamestate,)
+                gameArgs = (cursor.lastrowid, game.slot.slotId, gamestate, gamestate,)
                 cursor.execute(gameQuery, gameArgs)
                 savecounter += 1
 
