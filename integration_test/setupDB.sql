@@ -136,6 +136,7 @@ CREATE TABLE `ranking` (
   `round_id` int(16) NOT NULL,
   `division_id` int(16) NOT NULL,
   PRIMARY KEY (`ranking_id`),
+  UNIQUE KEY `rank_id` (`team_id`,`round_id`,`division_id`),
   KEY `team_id` (`team_id`),
   KEY `round_id` (`round_id`),
   KEY `division_id` (`division_id`),
