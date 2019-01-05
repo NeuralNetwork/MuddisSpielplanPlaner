@@ -8,8 +8,7 @@ std::vector<int>
 RankingGenerator::generateRanking(const std::vector<int> &currentRanking,
                         const std::vector<GameInt> &games,
                         const bool debug) {
-  std::random_device rd;
-  std::mt19937 gen(rd());
+  std::mt19937 gen(18); // use constant for init so ranking does not jump around, although input was the same as before
   std::uniform_int_distribution<> distribution(0, currentRanking.size() - 1);
   std::uniform_real_distribution<> acceptDist(0.0, 1.0);
   std::vector<double> losses;
