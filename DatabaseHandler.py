@@ -26,15 +26,15 @@ class DatabaseHandler:
             self.disconnect()
 
     ###################################################################################
-    def getFinalzeGameTime(self, division_id: int, round_number: int)->int:
+    def getFinalzeGameTime(self, division_id: int, round_number: int,round_swissdrawGames: int = 1)->int:
         if division_id is None or division_id < 0:
             raise ValueError("round_number must not be None or division_id")
         if round_number is None or round_number < 0:
             raise ValueError("round_number must not be None or negative")
         if self.conn.is_connected():
             round_id = self._getRoundId(division_id, round_number)
-            query = "SELECT round_fixnextgametime FROM round WHERE round.round_id = %s LIMIT 1"
-            args = (round_id,)
+            query = "SELECT round_fixnextgametime FROM round WHERE round.round_number = %s AND  round.round_swissdrawGames = %s AND  round.division_id = %s LIMIT 1"
+            args = (round_number, round_swissdrawGames, division_id,)
             cursor = self.conn.cursor(dictionary=True)
             cursor.execute(query, args)
             row = cursor.fetchone() 

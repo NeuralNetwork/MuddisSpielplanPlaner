@@ -7,7 +7,7 @@ class Slot:
         self.start = start
         self.end = end
         self.locationId = locationId
-        self.slotId=slotId
+        self.slotId = slotId
         self.round = round
 
     def distance(self, other) -> int:
