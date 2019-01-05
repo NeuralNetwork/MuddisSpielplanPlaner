@@ -76,6 +76,7 @@ class DatabaseHandler:
                                     "FROM round "\
                                     "WHERE round.round_state IN (" + roundStateStringList + ")) "\
                                "AND round.division_id = %s AND round.round_state IN (" + roundStateStringList + ") "\
+                               "AND round_swissdrawGames = 1 " \
                                "ORDER BY round.round_number ASC LIMIT 1"
             #print(query)
             roundStateArgs = ()
