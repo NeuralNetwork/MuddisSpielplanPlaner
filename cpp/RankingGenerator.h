@@ -12,10 +12,10 @@ struct GameInt {
           teamB(teamB),
           resultA(resultA),
           resultB(resultB) {};
-  int teamA = -1;
-  int teamB = -1;
-  int resultA = -1;
-  int resultB = -1;
+  int teamA;
+  int teamB;
+  int resultA;
+  int resultB;
 };
 
 class RankingGenerator {
