@@ -14,7 +14,7 @@ class DataAPI(object):
     def __init__(self, forceDBToBeUsed: str = ""):
         """ get DataHandler and initiate connection with data source"""
         self.databaseHandler = DatabaseHandler(forceDBToBeUsed=forceDBToBeUsed)
-        self.databaseHandler.connect()
+        self.databaseHandler.connect(True)
         print("#############################################################")
        
 

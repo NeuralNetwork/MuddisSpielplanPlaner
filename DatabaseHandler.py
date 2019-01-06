@@ -1,13 +1,18 @@
 import os
 from configparser import ConfigParser
-import mysql.connector 
+import mysql.connector
 from mysql.connector import MySQLConnection, Error
+import sshtunnel
 from TournamentDescriptionClasses import Slot, Team, MatchUp, Game, Result, Division, Location
 from ScoreboardDescriptionClasses import ScoreboardText
 from States import GameState, RoundState
 import time
 from typing import List
 
+
+
+sshtunnel.SSH_TIMEOUT = 5.0
+sshtunnel.TUNNEL_TIMEOUT = 5.0
 
 class NoDatabaseConnection(Exception):
     pass
@@ -512,14 +517,29 @@ class DatabaseHandler:
 
 #######################################################################################
             
-    def connect(self)->None:
+    def connect(self, ssh: bool = False)->None:
         """ Connect to MySQL database """
         #read config from file#
         db_config = self.read_db_config()
+        ssh_config = self.read_db_config(section="ssh")
         if self._forcedDB != "":
             db_config["database"] = self._forcedDB
         try:
-            conn = MySQLConnection(**db_config, charset='utf8')
+            if ssh:
+                with sshtunnel.SSHTunnelForwarder(
+                    (ssh_config['address'], int(ssh_config['port'])),
+                    ssh_username=ssh_config['ssh_username'],
+                    ssh_password=ssh_config['ssh_password'],
+                    remote_bind_address=(ssh_config['remote_bind_address'],  int(ssh_config['remote_bind_port']))
+                ) as tunnel:
+                    time.sleep(1)
+                    conn = mysql.connector.connect(
+                        user=db_config['user'], password=db_config['password'],
+                        host=db_config['host'], port=tunnel.local_bind_port,
+                        database=db_config['database'], charset='utf8'
+                    )
+            else:
+                conn = MySQLConnection(**db_config, charset='utf8')
             print('Connecting to MySQL database...')
                 
             if conn.is_connected():
