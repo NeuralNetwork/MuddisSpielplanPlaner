@@ -16,7 +16,7 @@ def update(forceDBToBeUsed: str = "", finalRoundState: RoundState = RoundState.F
             stillRoundsToBeOptimized = True
             break
 
-    # TODO remove this, only a hack for MC18
+    # TODO remove this, only a hack for MC19
     for division in api.getSwissDrawDivisions():
         divisionId = division.divisionId
         if api.getRoundNumberToBeOptimized(divisionId) is None:
@@ -29,7 +29,7 @@ def update(forceDBToBeUsed: str = "", finalRoundState: RoundState = RoundState.F
 
     #if not stillRoundsToBeOptimized:
     #    return False
-    #TODO remove this, only a hack for MC18
+    #TODO remove this, only a hack for MC19
     if not stillRoundsToBeOptimized:
         return True
 
