@@ -6,7 +6,7 @@
 
 %include "std_vector.i";
 namespace std {
-  %template(vector_int) vector<int>;
+  %template(vector_TeamInt) vector<TeamInt>;
   %template(vector_GameInt) vector<GameInt>;
 }
 

@@ -116,9 +116,10 @@ def generateNewRankingCpp(currentRanking: List[Team], games: List[Game], debug=F
     for number, teamName in enumerate(currentRanking, 0):
         teamNameToInt[teamName] = int(number)
 
-    currentRankingInt = list()
-    for teamName in currentRanking:
-        currentRankingInt.append(teamNameToInt[teamName])
+    teamsInt = list()
+    for team in currentRanking:
+        teamInt = RankingGeneratorCpp.TeamInt(teamNameToInt[team], team.seed)
+        teamsInt.append(teamInt)
 
     gamesInt = list()
     for game in games:
@@ -129,12 +130,12 @@ def generateNewRankingCpp(currentRanking: List[Team], games: List[Game], debug=F
         gamesInt.append(gameInt)
 
     rankingGeneratorCpp = RankingGeneratorCpp.RankingGenerator()
-    rankingInt = rankingGeneratorCpp.generateRanking(currentRankingInt, gamesInt, debug)
+    rankingInt = rankingGeneratorCpp.generateRanking(teamsInt, gamesInt, debug)
 
     newRanking = list()
     for number in rankingInt:
         for key, value in teamNameToInt.items():
-            if value == number:
+            if value == number.team:
                 newRanking.append(key)
                 break
     return newRanking

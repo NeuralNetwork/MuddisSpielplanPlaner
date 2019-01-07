@@ -4,8 +4,8 @@
 #include <iostream>
 #include <random>
 
-std::vector<int>
-RankingGenerator::generateRanking(const std::vector<int> &currentRanking,
+std::vector<TeamInt>
+RankingGenerator::generateRanking(const std::vector<TeamInt> &currentRanking,
                         const std::vector<GameInt> &games,
                         const bool debug) {
   std::mt19937 gen(18); // use constant for init so ranking does not jump around, although input was the same as before
@@ -14,8 +14,8 @@ RankingGenerator::generateRanking(const std::vector<int> &currentRanking,
   std::vector<double> losses;
   // current elements in the search
   double minimalLoss = std::numeric_limits<double>::max();
-  std::vector<int> minimalLossRanking = currentRanking;
-  std::vector<int> newRanking = currentRanking;
+  std::vector<TeamInt> minimalLossRanking = currentRanking;
+  std::vector<TeamInt> newRanking = currentRanking;
   // tuning parameters for search
   double pAcceptWorse = 0.5; // probability to accept a worse result
   double decay = 0.9999;     // decay parameter for pAcceptWorse
@@ -56,7 +56,7 @@ RankingGenerator::generateRanking(const std::vector<int> &currentRanking,
   {
       std::cout << "Optimal Ranking:" << std::endl;
       for(const auto& item : minimalLossRanking)
-          std::cout << item << std::endl;
+          std::cout << item.team << std::endl;
       std::cout << "Optimal Error: loss=" <<  minimalLoss << std::endl;
       std::cout << "pAcceptWorse: " << pAcceptWorse << std::endl;
   }
@@ -72,13 +72,15 @@ RankingGenerator::generateRanking(const std::vector<int> &currentRanking,
   return minimalLossRanking;
 }
 
-double RankingGenerator::calculateTotalError(const std::vector<int> &currentRanking, const std::vector<GameInt> &games) {
+double RankingGenerator::calculateTotalError(const std::vector<TeamInt> &currentRanking, const std::vector<GameInt> &games) {
   double lossSum = 0;
 
   for(const auto& game : games) {
     //TODO build lookup table for team to rank conversion
-    const auto rankAIt = std::find(currentRanking.begin(), currentRanking.end(), game.teamA);
-    const auto rankBIt = std::find(currentRanking.begin(), currentRanking.end(), game.teamB);
+    const auto rankAIt = std::find_if(currentRanking.begin(), currentRanking.end(),
+            [&](const auto& value) { return value.team == game.teamA;});
+    const auto rankBIt = std::find_if(currentRanking.begin(), currentRanking.end(),
+            [&](const auto& value) { return value.team == game.teamB;});
     const int rankA = std::distance(currentRanking.begin(), rankAIt);
     const int rankB = std::distance(currentRanking.begin(), rankBIt);
 
@@ -89,6 +91,16 @@ double RankingGenerator::calculateTotalError(const std::vector<int> &currentRank
       predictedResultDelta *= -1;
     }
     lossSum += std::pow(resultDelta - predictedResultDelta, 2);
+  }
+
+  const int approximatedSwissRound = std::ceil((double)games.size() / (double)currentRanking.size());
+  for(const auto team : currentRanking) {
+    if(approximatedSwissRound <= 1) {
+      lossSum += pow(team.team - team.seed, 2);
+    }
+    else if(approximatedSwissRound == 2){
+      lossSum += pow(team.team - team.seed, 2) / 4.0;
+    }
   }
   return lossSum;
 }
