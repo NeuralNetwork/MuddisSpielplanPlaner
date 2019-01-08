@@ -9,11 +9,6 @@ from States import GameState, RoundState
 import time
 from typing import List
 
-
-
-sshtunnel.SSH_TIMEOUT = 5.0
-sshtunnel.TUNNEL_TIMEOUT = 5.0
-
 class NoDatabaseConnection(Exception):
     pass
 
@@ -24,6 +19,8 @@ class DatabaseHandler:
     def __init__(self, forceDBToBeUsed: str = ""):
         self._forcedDB = forceDBToBeUsed
         self.conn = MySQLConnection()
+        sshtunnel.SSH_TIMEOUT = 5.0
+        sshtunnel.TUNNEL_TIMEOUT = 5.0
 
     def __del__(self):
         print("destruct DatabaseHandler")
@@ -532,12 +529,14 @@ class DatabaseHandler:
                     ssh_password=ssh_config['ssh_password'],
                     remote_bind_address=(ssh_config['remote_bind_address'],  int(ssh_config['remote_bind_port']))
                 ) as tunnel:
-                    time.sleep(1)
-                    conn = mysql.connector.connect(
+                    print("tunnel")
+                    conn = MySQLConnection(
                         user=db_config['user'], password=db_config['password'],
                         host=db_config['host'], port=tunnel.local_bind_port,
                         database=db_config['database'], charset='utf8'
                     )
+                    output = conn.execute("select * from user")
+                    print(output)
             else:
                 conn = MySQLConnection(**db_config, charset='utf8')
             print('Connecting to MySQL database...')
