@@ -94,12 +94,13 @@ double RankingGenerator::calculateTotalError(const std::vector<TeamInt> &current
   }
 
   const int approximatedSwissRound = std::ceil((double)games.size() / (double)currentRanking.size());
-  for(const auto team : currentRanking) {
+  // ranking in seed is expected to start at 1
+  for(int rank = 0; rank < currentRanking.size(); ++rank) {
     if(approximatedSwissRound <= 1) {
-      lossSum += pow(team.team - team.seed, 2);
+      lossSum += pow((rank+1) - currentRanking[rank].seed, 2);
     }
     else if(approximatedSwissRound == 2){
-      lossSum += pow(team.team - team.seed, 2) / 4.0;
+      lossSum += pow((rank+1) - currentRanking[rank].seed, 2) / 4.0;
     }
   }
   return lossSum;
