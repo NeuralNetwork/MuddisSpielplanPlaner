@@ -131,6 +131,7 @@ def generateNewRankingCpp(currentRanking: List[Team], games: List[Game], debug=F
 
     rankingGeneratorCpp = RankingGeneratorCpp.RankingGenerator()
     rankingInt = rankingGeneratorCpp.generateRanking(teamsInt, gamesInt, debug)
+    rankingInt.sort(key=lambda rank:rank.newRank) #  sort ranking by newRank since swig seems to shuffle returned list...
 
     newRanking = list()
     for number in rankingInt:

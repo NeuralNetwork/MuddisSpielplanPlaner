@@ -11,6 +11,7 @@ struct TeamInt {
   seed(seed) {};
   int team;
   int seed;
+  int newRank = -1;
 };
 
 /** struct that is used internally to represent a Game. */
