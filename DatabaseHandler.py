@@ -246,7 +246,8 @@ class DatabaseHandler:
         if self.conn.is_connected():             
             query = "SELECT team_id, team_name, team_acronym, team_seed FROM team "
             query += "WHERE division_id = %s "                
-            args = (divisionId,) 
+            query += "ORDER BY team_seed "                
+            args = (divisionId,)
 
             try:                
                 cursor = self.conn.cursor(dictionary=True)    
@@ -272,7 +273,7 @@ class DatabaseHandler:
     def getSwissDrawDivisions(self)->List[Division]:
         divisions = []
         if self.conn.is_connected():             
-            query = "SELECT division_id, division_name, division_acronym FROM division WHERE division_optimized = 1"   
+            query = "SELECT division_id, division_name, division_acronym FROM division WHERE division_optimized = 1"
 
             try:             
                 
