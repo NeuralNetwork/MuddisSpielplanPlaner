@@ -69,9 +69,6 @@ RankingGenerator::generateRanking(const std::vector<TeamInt> &currentRanking,
       ax1.set_title('Error for different permutations')
       plt.show()
   */
-  for(int i = 0; i < minimalLossRanking.size(); ++i) {
-    minimalLossRanking[i].newRank = i+1;
-  }
   return minimalLossRanking;
 }
 
