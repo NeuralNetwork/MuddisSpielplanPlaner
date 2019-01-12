@@ -46,6 +46,7 @@ CREATE TABLE `game` (
   `game_state` int(1) NOT NULL,
   PRIMARY KEY (`game_id`),
   UNIQUE KEY `slot_id_2` (`slot_id`),
+  UNIQUE KEY `matchslot` (`matchup_id`,`slot_id`),
   KEY `matchup_id` (`matchup_id`),
   KEY `slot_id` (`slot_id`),
   CONSTRAINT `game_ibfk_1` FOREIGN KEY (`slot_id`) REFERENCES `slot` (`slot_id`) ON DELETE CASCADE ON UPDATE CASCADE,
@@ -95,6 +96,7 @@ CREATE TABLE `location` (
   `location_color` varchar(7) COLLATE utf8_unicode_ci NOT NULL,
   `location_latitude` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
   `location_longitude` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
+  `location_gym` tinyint(1) NOT NULL,
   PRIMARY KEY (`location_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;

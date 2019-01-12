@@ -151,6 +151,7 @@ class Generator:
         self._insert(table, data)
 
     def _fillRounds(self):
+        # TODO make first round accepted (this is how it is done in reality)
         table = "round"
         data = list()
         roundId = 1
@@ -231,7 +232,8 @@ class Generator:
             color = "#00ff00"
             latitude = 52.0
             longitude = 5.0
-            data.append((locationId, name, description, color, latitude, longitude))
+            location_gym = 1
+            data.append((locationId, name, description, color, latitude, longitude, location_gym))
         self._insert(table, data)
 
     def _fillSlots(self):
