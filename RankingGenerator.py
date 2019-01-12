@@ -146,4 +146,5 @@ except ImportError:
     rankingFunction = generateNewRankingPython
 
 def generateNewRanking(currentRanking: List[Team], games: List[Game], debug=False) -> List[Team]:
+    assert len(currentRanking) > 0
     return rankingFunction(currentRanking, games, debug)
