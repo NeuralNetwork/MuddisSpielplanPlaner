@@ -476,7 +476,7 @@ class DatabaseHandler:
             raise NoDatabaseConnection
 
         try:
-            query = "UPDATE matchup SET matchup_team1_score = %s, matchup_team1_score = %s WHERE matchup_id = %s"
+            query = "UPDATE matchup SET matchup_team1_score = %s, matchup_team2_score = %s WHERE matchup_id = %s"
             args = (resultA, resultB, matchup_id)
             cursor = self.conn.cursor()
             cursor.execute(query, args)
