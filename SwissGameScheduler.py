@@ -82,8 +82,8 @@ class SwissGameScheduler:
         ##
 
         # calculate pauses between games for both teams
-        firstDelta = self.getTimeDelta(previousMatches, futureMatchUp.matchup.first.teamId, futureSlot)
-        secondDelta = self.getTimeDelta(previousMatches, futureMatchUp.matchup.second.teamId, futureSlot)
+        firstDelta = self.getTimeDelta(previousMatches, futureMatchUp.matchup.first.teamId, futureSlot) / 60
+        secondDelta = self.getTimeDelta(previousMatches, futureMatchUp.matchup.second.teamId, futureSlot) / 60
         # subtract optimal pause length from effective pause length
         firstCorrectedDelta = firstDelta - targetDelta
         secondCorrectedDelta = secondDelta- targetDelta
@@ -162,8 +162,8 @@ class SwissGameScheduler:
                                                               futureSlots[i].slot.locationId,
                                                               futureMatchUps[matchupIndexList[i]].matchup.first.name,
                                                               futureMatchUps[matchupIndexList[i]].matchup.second.name))
-            firstDelta = self.getTimeDelta(previousMatches, futureMatchUps[matchupIndexList[i]].matchup.first.teamId, futureSlots[i])
-            secondDelta = self.getTimeDelta(previousMatches, futureMatchUps[matchupIndexList[i]].matchup.second.teamId, futureSlots[i])
+            firstDelta = self.getTimeDelta(previousMatches, futureMatchUps[matchupIndexList[i]].matchup.first.teamId, futureSlots[i]) / 60.0
+            secondDelta = self.getTimeDelta(previousMatches, futureMatchUps[matchupIndexList[i]].matchup.second.teamId, futureSlots[i]) / 60.0
             print("minutes between games for {}: {}".format(futureMatchUps[matchupIndexList[i]].matchup.first.name, firstDelta))
             print("minutes between games for {}: {}".format(futureMatchUps[matchupIndexList[i]].matchup.second.name, secondDelta))
 
