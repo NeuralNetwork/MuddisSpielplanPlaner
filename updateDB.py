@@ -14,8 +14,24 @@ def update(forceDBToBeUsed: str = "", finalRoundState: RoundState = RoundState.F
     for division in api.getSwissDrawDivisions():
         if api.getRoundNumberToBeOptimized(division.divisionId) is not None:
             stillRoundsToBeOptimized = True
+            break
+
+    # TODO remove this, only a hack for MC18
+    for division in api.getSwissDrawDivisions():
+        divisionId = division.divisionId
+        if api.getRoundNumberToBeOptimized(divisionId) is None:
+            teams = api.getListOfAllTeams(divisionId)
+            gamesRelevantForRanking = api.getListOfGames(gameStates=[GameState.COMPLETED, GameState.RUNNING],
+                                                         divisionId=divisionId)
+            ranking = generateNewRanking(teams, gamesRelevantForRanking)
+            roundNumber = 4
+            api.insertRanking(ranking, roundNumber, divisionId)
+
+    #if not stillRoundsToBeOptimized:
+    #    return False
+    #TODO remove this, only a hack for MC18
     if not stillRoundsToBeOptimized:
-        return False
+        return True
 
     for division in api.getSwissDrawDivisions():
         divisionId = division.divisionId
