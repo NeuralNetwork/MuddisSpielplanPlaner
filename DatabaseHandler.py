@@ -361,38 +361,21 @@ class DatabaseHandler:
         #            "VALUES(%s,%s,%s) "
         gameQuery = "INSERT INTO game (matchup_id ,slot_id, game_state) VALUES (%s, %s, %s) ON DUPLICATE KEY UPDATE game_state =%s"
 
-        slot_id_check_query = "SELECT matchup_id FROM game WHERE slot_id = %s LIMIT 1"
-        matchup_id_query = "SELECT matchup_id FROM matchup " \
-                           "INNER JOIN games ON "
-
         try:
             for game in games:
                 self.conn.autocommit = False
                 cursor = self.conn.cursor()
 
-                slot_id_check_Args = (game.slot.slotId,)
-                cursor.execute(slot_id_check_query, slot_id_check_Args)
-                row = cursor.fetchone()
-                if row is None:
-                    matchupArgs = (game.matchup.first.teamId, game.matchup.second.teamId)
-                    cursor.execute(matchupQuery, matchupArgs)
+                matchupArgs = (game.matchup.first.teamId, game.matchup.second.teamId)
+                cursor.execute(matchupQuery, matchupArgs)
 
-                    if not cursor.lastrowid:
-                        raise ValueError("no last inserted id found")
+                if not cursor.lastrowid:
+                    raise ValueError("no last inserted id found")
 
-                    gameArgs = (cursor.lastrowid, game.slot.slotId, gamestate,)
-                    gameArgs = (cursor.lastrowid, game.slot.slotId, gamestate, gamestate,)
-                    cursor.execute(gameQuery, gameArgs)
-                    savecounter += 1
-                else:
-                    print("a"  + str(row[0]))
-                    gameQuery = "INSERT INTO game (matchup_id ,slot_id, game_state) VALUES (%s, %s, %s) ON DUPLICATE KEY UPDATE game_state =%s"
-                    gameArgs = (row[0], game.slot.slotId, gamestate, gamestate,)
-                    matchupQuery = "UPDATE matchup SET matchup_team1_id = %s ,matchup_team2_id = %s WHERE matchup_id = %s"
-                    matchupArgs = (game.matchup.first.teamId, game.matchup.second.teamId, row[0],)
-
-                    cursor.execute(matchupQuery, matchupArgs)
-                    cursor.execute(gameQuery, gameArgs)
+                gameArgs = (cursor.lastrowid, game.slot.slotId, gamestate,)
+                gameArgs = (cursor.lastrowid, game.slot.slotId, gamestate, gamestate,)
+                cursor.execute(gameQuery, gameArgs)
+                savecounter += 1
 
             if debug == 0:
                 self.conn.commit()
