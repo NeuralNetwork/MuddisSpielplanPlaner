@@ -21,7 +21,6 @@ def update(forceDBToBeUsed: str = "", finalRoundState: RoundState = RoundState.F
         divisionId = division.divisionId
         # create ranking
         teams = api.getListOfAllTeams(divisionId)
-        #TODO get list of games in one action to prevent possible race conditions
         gamesRelevantForRanking = api.getListOfGames(gameStates=[GameState.COMPLETED, GameState.RUNNING], divisionId=divisionId)
         ranking = generateNewRanking(teams, gamesRelevantForRanking)
         roundNumber = api.getRoundNumberToBeOptimized(divisionId)
