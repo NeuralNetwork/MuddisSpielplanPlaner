@@ -8,7 +8,8 @@ std::vector<TeamInt>
 RankingGenerator::generateRanking(const std::vector<TeamInt> &currentRanking,
                         const std::vector<GameInt> &games,
                         const bool debug) {
-  std::mt19937 gen(18); // use constant for init so ranking does not jump around, although input was the same as before
+  std::random_device rd;
+  std::mt19937 gen(rd());
   std::uniform_int_distribution<> distribution(0, currentRanking.size() - 1);
   std::uniform_real_distribution<> acceptDist(0.0, 1.0);
   std::vector<double> losses;
@@ -93,14 +94,16 @@ double RankingGenerator::calculateTotalError(const std::vector<TeamInt> &current
     lossSum += std::pow(resultDelta - predictedResultDelta, 2);
   }
 
+  // Only after the second round is done, all teams can be ranked relatively to each other.
+  // Until then the seed is used to prevent arbitrary rankings.
   const int approximatedSwissRound = std::ceil((double)games.size() / (double)currentRanking.size());
   // ranking in seed is expected to start at 1
   for(int rank = 0; rank < currentRanking.size(); ++rank) {
     if(approximatedSwissRound <= 1) {
-      lossSum += pow((rank+1) - currentRanking[rank].seed, 2);
+      lossSum += std::pow((rank+1) - currentRanking[rank].seed, 2);
     }
     else if(approximatedSwissRound == 2){
-      lossSum += pow((rank+1) - currentRanking[rank].seed, 2) / 4.0;
+      lossSum += 0;
     }
   }
   return lossSum;
